@@ -10,8 +10,10 @@
 #include <Bisection.h>
 #include <VoxelSpace.h>
 #include <TreeLocations.h>
+#include <SomeFunctors.h>
 #include <CalculateLight.h>
 #include <VoxelSpace.h>
+#include <FindForestBoundingBox.h>
 #include <XMLTree.h>
 #include <StandDescriptor.h>
 #include <VoxelSpace.h>
@@ -81,6 +83,7 @@ template <class TREE, class TS, class BUD>//,class LSYSTEM>
     int no_trees;
     bool noWoodVoxel;
     bool wood_voxel;
+    bool dir_star; // variable to determine whether to activate the calculations of the directional STAR calculations or not.
     string phprodfile;
     LGMdouble voxboxside;
     bool dump_self;
@@ -112,6 +115,8 @@ template <class TREE, class TS, class BUD>//,class LSYSTEM>
     string trees_pos_file;
     bool radius_only;
     LGMdouble max_radius;
+    bool calculateDirectionalStar; //To calculate directional STAR values
+
 };
 
 

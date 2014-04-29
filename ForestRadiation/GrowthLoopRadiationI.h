@@ -48,7 +48,7 @@ template<class TREE, class TS, class BUD>
   cout << "[-treeFile <filename>] [-generateLocations  <num>] [-woodVoxel] [-treeLocations <file>]" << endl;
   cout << "[-phprodfile <file>] [-Voxbox <value>]" << endl;
   cout << "[-dumpSelf] [-inputTree <filename>] [-kBorderConifer <value>] [-GapRadius <value>]" << endl;
-  cout << "[-targetTreeRad <value>] [-evaluateLAI] [-radMethod <num>] [-calculateSTAR <num>]" << endl;
+  cout << "[-targetTreeRad <value>] [-evaluateLAI] [-radMethod <num>] [-calculateSTAR <num>] [-calculateDirectionalStar] " << endl;
   cout << "[-voxelTree] [-boxDirEffect] [-treeInfo] [-segmentInfo <file>]" << endl;
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
@@ -57,6 +57,7 @@ template<class TREE, class TS, class BUD>
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
   cout << "-woodVoxel                If woody parts are dumped to voxels (default = true)" << endl;
+  cout << "-calculateDirectionalStar If directional star needs to be calculated then use true (default = false)  "<<endl;
   cout << "-treeDist <dist>          Minimum distance between two trees (default = 0), works only with -generateLocations." << endl;  
   cout << "-numParts <parts>         Segments can be dumped to voxels by parts (i.e. they may belong to different voxels," << endl;
   cout << "-targetTree <num>         Any one of the trees can be identified as target tree (default = 0)" << endl;
@@ -99,9 +100,13 @@ template<class TREE, class TS, class BUD>
 void GrowthLoop<TREE,TS,BUD>::checkCommandLine(int argc, char** argv)const
 {
   //At least three  mandatory arguments required 
-  if (argc < 3){
+  if (argc < 4){
     cout << "Three mandatory arguments are required!" << endl << endl;
     usage();
+    exit(0);
+  }
+  else if (CheckCommandLine(argc,argv,"-iter") == false){
+    cout << "Mandatory -iter <num> option missing" << endl;
     exit(0);
   }
   else if (CheckCommandLine(argc,argv,"-metafile") == false){
@@ -336,8 +341,16 @@ void GrowthLoop<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
     max_radius  = atof(clarg.c_str());
   }
 
+  calculateDirectionalStar = false;
+  if (CheckCommandLine(argc,argv,"-calculateDirectionalStar"))
+    calculateDirectionalStar = true;
+  //cout<<"THS IS THE VALE "<<bool(calculateDirectionalStar)<<endl;
+
+
+
   if (verbose){
     cout << "parseCommandLine end" <<endl;
+
   }   
 }
 
@@ -816,6 +829,11 @@ template<class TREE, class TS,class BUD>
 
 }  // end of setVoxelSpaceAndBorderForest() { ...
 
+//  calculateDirectionalStar = false;
+//  if (CheckCommandLine(argc,argv,"-calculateDirectionalStar"))
+//    calculateDirectionalStar = true;
+
+
 //===================================================================
 // calculateRadiation UnDumps a tree (except the first tree, since
 // it was not dumped in setVoxelspace()) and calculates radiation
@@ -829,6 +847,7 @@ template<class TREE, class TS,class BUD>
 
   //Find max height (Hmax) and minimum height of crown base (Hcbmin)
   //and construct then the target tree
+     // cout<<"this is inside calculateRadiation";
 
   BoundingBox bb;
   //  FindCfBoundingBox<TS,BUD> fb(true);
@@ -976,6 +995,7 @@ template<class TREE, class TS,class BUD>
     exit(0);
    }
 
+
   //EvaluateRadiationForCfTreeSegment_1<ScotsPineSegment,ScotsPineBud> Rad(K,vs,&border_forest, green_ext);
   //Alla on pairwise kaikille puille
    K = ParametricCurve("K.fun");
@@ -985,9 +1005,11 @@ template<class TREE, class TS,class BUD>
 
   //Tassa vain voxel
    bool virittely_dump = false;                    //HUOM virittely
+
+
    EvaluateRadiationForCfTreeSegment_3<ScotsPineSegment,ScotsPineBud>
      Rad3(K, vs, &border_forest, false, a, b, virittely_dump, k_border_conifer,
-	     box_dir_effect, wood_voxel, correct_star, constant_star);
+         box_dir_effect, wood_voxel, correct_star, constant_star,calculateDirectionalStar);
 
 
    SetStarMean<TS,BUD> setstar(ParametricCurve(0.14));
@@ -1057,6 +1079,403 @@ template<class TREE, class TS,class BUD>
 }  //end of calculateRadiation()  { ..
 
 
+/* #define HIT_THE_FOLIAGE 1 */
+/* #define NO_HIT 0 */
+/* #define HIT_THE_WOOD -1 */
+
+// 1)  EvaluateRadiationForCfTreeSegment_1s evaluates shading
+// caused by all other segments on this conifer segment.  The shading caused by segments in the crown
+// of tree itself is evaluated by ShadingEffectOfCfTreeSegment_1<TS,BUD> (it is the same as
+// ShadingEffectOfCfTreeSegment in stl-lignum; the functor is duplicated in include/CalculateRadiation.h
+// only for convenience).
+// After that other trees are accounted for with voxelspace (voxel_space->getRoute() etc) and surrounding
+//stand with border_forest->getBorderForestExtinction().
+// This function evaluates the shading by surrounding trees and border forest separately (Qin_stand);
+// EvaluateRadiationForCfTreeSegment_1 in include/CalculateLight.h does otherwise the same as this but does not
+// evaluate Qin_stand.
+
+// 2) EvaluateRadiationForCfTreeSegment_2 evaluates shading by all other segments by paiwise comparison (segments
+// in own crown & other trees). It uses ShadingEffectOfCfTreeSegment_1<TS,BUD> to evaluate shading.
+// This functor evaluates shading by own crown and shading by other trees (stand) separately and updates
+// Qin_stand in TreeSegment.
+
+
+/* //======================================================================================================= */
+
+/* //This version of radiation evaluates radiation conditions for subject tree by pairwise */
+/* // comparison */
+
+/* //This functor EvaluateRadiationForCfTreeSegment evaluates shading */
+/* //caused by all other segments on this conifer segment. This functor */
+/* //uses functor ShadingEffectOfCfTreeSegment<TS,BUD> to go through all */
+/* //segments to check the shading. */
+
+/* //If the attributes voxel_space and border_forest are set (then */
+/* //voxel_space != NULL), the attenuation of the bean in the voxel_space */
+/* //and border_forest is taken into consideration. */
+
+/* template <class TS, class BUD, class TREE> */
+/* class EvaluateRadiationForCfTreeSegment_2 { */
+/* public: */
+/*     EvaluateRadiationForCfTreeSegment_2(const ParametricCurve& k, vector<TREE*>& vt): */
+/*   K(k), vtree(vt) {only_self = false;} */
+/*  EvaluateRadiationForCfTreeSegment_2(const ParametricCurve& k, vector<TREE*>& vt, bool o_s): */
+/*       K(k), vtree(vt), only_self(o_s) {} */
+
+/*       TreeCompartment<TS,BUD>* operator()(TreeCompartment<TS,BUD>* tc)const; */
+/* private: */
+/*   const ParametricCurve& K; */
+/*   vector<TREE*>& vtree; */
+/*   bool only_self;      */
+/* }; */
+
+
+/* //This functor EvaluateRadiationForCfTreeSegment evaluates shading */
+/* //caused by all other segments on this conifer segment. This functor */
+/* //uses functor ShadingEffectOfCfTreeSegment<TS,BUD> to go through all */
+/* //segments to check the shading. */
+
+
+/* template <class TS, class BUD, class TREE> */
+/*   TreeCompartment<TS,BUD>* EvaluateRadiationForCfTreeSegment_2<TS,BUD,TREE>::operator() (TreeCompartment<TS, BUD>* tc)const */
+/* { */
+/*   if (TS* ts = dynamic_cast<TS*>(tc)){ */
+/*     SetValue(*ts, LGAQin, 0.0); */
+/*     SetValue(*ts, LGAQabs, 0.0); */
+
+/*     //Radiation  conditions are not  evaluated if  the segment  has no */
+/*     //foliage (in practice  there would be division by  0 in computing */
+/*     //absorbed radiation) */
+/*     if (GetValue(*ts, LGAWf) < R_EPSILON){ */
+/* 	return tc; */
+/*     } */
+
+/*     Tree<TS,BUD>& tt = GetTree(*ts); */
+/*     FirmamentWithMask& firmament = GetFirmament(tt); */
+/*     int number_of_sectors = firmament.numberOfRegions(); */
+/*     double a_dot_b = 0.0; */
+/*     vector<double> radiation_direction(3); */
+
+/*     vector<double> v(number_of_sectors,0.0);  */
+/*     ShadingEffectOfCfTreeSegment_1<TS,BUD> s_e(ts,K,v); */
+
+
+/*     //This  goes  through  the  tree  and computes  shading  based  on */
+/*     //1)distance  light beam traverses  in foliage,  2)foliage density */
+/*     //and 3) inclination light beam hits the segment. */
+
+/*     //just go through all trees: first the others (stand) and then the tree itself. */
+/*     //This is to evaluate the self-shading and stand-shading components. */
+
+/*     //The target tree is the first tree in the vector; do it last in order */
+/*     //to get the effect of surrounding stand */
+
+/*     //In the case of only_self it is the only tree in the vector */
+/*     if(only_self) { */
+/*       TREE* t = vtree[0]; */
+/*       ForEach(*t,s_e); */
+/*     }  */
+/*     else { */
+/*       if(vtree.size() > 1) */
+/* 	for(unsigned int k = 1; k < vtree.size(); k++) { */
+/* 	  TREE* t = vtree[k]; */
+/* 	  ForEach(*t,s_e); */
+/* 	} */
+/*     } */
+
+/*     //Now the Qin after shading of others */
+/*     vector<double> qis(number_of_sectors,0.0);  */
+/*     vector<double>& ss = s_e.getS(); */
+/*     for (int i = 0; i < number_of_sectors; i++){ */
+/*       if (ss[i] != HIT_THE_WOOD){ */
+/* 	MJ Io = firmament.diffuseRegionRadiationSum(i,radiation_direction); */
+/* 	qis[i] = Io*exp(-ss[i]); */
+/*       } */
+/*     } */
+/*     LGMdouble Qin_stand = 0.0; */
+/*     Qin_stand = accumulate(qis.begin(),qis.end(),0.0); */
+/*     ts->setQinStand(Qin_stand); */
+
+/*     //Now the last tree i.e tree itself */
+/*     //    ForEach(*(vtree[0]), s_e); */
+
+/*     //implement  "Ip  =  Iope^(-Vp)",  s[i] =  radiation  coming  from */
+/*     //direction i after this */
+/*     vector<double>& s = s_e.getS(); */
+/*     for (int i = 0; i < number_of_sectors; i++){ */
+/*       if (s[i] == HIT_THE_WOOD){ */
+/* 	s[i] = 0.0; */
+/*       } */
+/*       else { */
+/* 	MJ Iop = firmament.diffuseRegionRadiationSum(i,radiation_direction); */
+/* 	s[i] = Iop*exp(-s[i]); */
+/*       } */
+/*     } */
+/*     //Total incoming radiation   */
+/*     MJ Q_in = accumulate(s.begin(),s.end(),0.0); */
+
+/*     //s contains now incoming radiation from each sector. Evaluate how */
+/*     //much segment absorbs from incoming radation. */
+/*     LGMdouble Lk, inclination, Rfk, Ack, extinction, sfk, Ask, Wfk; */
+/*     Lk = Rfk = Ack =  extinction = sfk = Ask = Wfk = 0.0; */
+/*     Lk = GetValue(*ts, LGAL);   //length is > 0.0, otherwise we would not bee here */
+/*     Rfk = GetValue(*ts, LGARf);  //Radius to foliage limit  */
+/*     Wfk = GetValue(*ts, LGAWf); //Foliage mass */
+/*     //   sfk  = GetValue(tt, LGPsf); //Foliage m2/kg from tree */
+/*     sfk  = GetValue(*ts, LGAsf); //Foliage m2/kg from segment!!! */
+
+/*     for (int i = 0; i < number_of_sectors; i++){ */
+/*       firmament.diffuseRegionRadiationSum(i,radiation_direction); */
+/*       a_dot_b = Dot(GetDirection(*ts), PositionVector(radiation_direction)); */
+/*       inclination = PI_DIV_2 - acos(fabs(a_dot_b)); */
+
+/*       Ack = 2.0*Lk*Rfk*cos(inclination) + PI_VALUE*pow(Rfk,2.0)*sin(inclination); */
+
+/*     extinction = (double)K(inclination); */
+
+/*       if (Ack == 0.0){ */
+/* 	cout << "ERROR EvaluateRadiationForCfTreeSegment: Ack == 0 (division by 0)" */
+/* 	     << endl; */
+/*       } */
+
+/*       //implement I(k)p = Ip*Ask, Note  Ack must be greater than 0 (it */
+/*       //should if there is any foliage) */
+/*       Ask = (1.0 - exp(-extinction*((sfk*Wfk)/Ack)))*Ack; */
+/*       s[i] *= Ask; */
+/*     } */
+
+/*     MJ Q_abs = accumulate(s.begin(),s.end(),0.0); */
+/*     SetValue(*ts, LGAQabs, Q_abs); */
+/*     SetValue(*ts, LGAQin, Q_in); */
+/*   } */
+/*   return tc; */
+/* } */
+
+
+
+/* //======================================================== */
+
+/* class AccumulateOpticalDepth{ */
+/*  public: */
+/*  AccumulateOpticalDepth(LGMdouble side, LGMdouble a, LGMdouble b, Point loc, ParametricCurve kk, */
+/* 			bool d_e, bool wd, bool cs, LGMdouble st) : */
+/*   box_side_length(side), par_a(a), par_b(b), seg_loc(loc), K(kk), dir_effect(d_e), wood(wd), */
+/*     constant_star(st),correct_star(cs) {box_volume = pow(box_side_length,3.0);} */
+/*   double operator()(double o_d,VoxelMovement& vm){ */
+/*     //    if((vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) && vm.n_segs_real > 0.0) { */
+/*     if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) { */
+/*       LGMdouble k; */
+/*       if(constant_star > 0.0) */
+/* 	k = constant_star; */
+/*       else */
+/* 	k = vm.STAR_mean; */
+
+/*       if(correct_star) { */
+/* 	k = max(0.0,-0.014+1.056*k); */
+/*       } */
+
+/*       //NOTE: here transformation STAR_eq --> STAR; documented in */
+/*       //~/Riston-D/E/LIGNUM/Light/summer-09-test/STAR-vs-STAR_eq.pdf */
+
+/*       //Effect of hit angle to the mean direction of shoots in the voxel box, documented in */
+/*       //~/Riston-D/E/LIGNUM/Light/Article/vs-STARmean-all.pdf and */
+/*       //~/Riston-D/E/LIGNUM/Light/Article/vs-STARmean-approximation.pdf */
+/*       PositionVector mean_dir = vm.mean_direction; */
+/*       LGMdouble mean_dir_length = mean_dir.length(); */
+/*       LGMdouble effect = 1.0; */
+/*       if(dir_effect) { */
+/* 	if(mean_dir_length > 0.0){ */
+/* 	  mean_dir.normalize(); */
+/* 	  LGMdouble inclination  =  PI_DIV_2 - acos(fabs(Dot(mean_dir,beam_dir))); */
+/* 	  effect =  K(inclination)/K(0.7); */
+/* 	} */
+/*       } */
+/*       //this scales the effect depending on how parallel the segments are */
+/*       /\*       if(mean_dir_length > 0.0) { *\/ */
+/*       /\* 	mean_dir.normalize(); *\/ */
+/*       /\* 	LGMdouble inclination  =  PI_DIV_2 - acos(fabs(Dot(mean_dir,beam_dir))); *\/ */
+/*       /\* 	//	LGMdouble effect  = 1.13 - 0.24*pow(inclination,2.0); *\/ */
+/*       /\* 	//	LGMdouble effect = 1.2-0.3*inclination*(inclination+0.3); *\/ */
+/*       /\* 	LGMdouble u =  mean_dir_length/vm.n_segs_real; *\/ */
+/*       /\* 	effect = 1.0 - u + u * K(inclination)/K(0.7); *\/ */
+/*       /\* 	cout << " u " << u << endl; *\/ */
+/*       /\*       } *\/ */
+
+/*       o_d += effect * k * vm.af * vm.l / box_volume; */
+
+/*       if(wood) { */
+/* 	//Mean projection area of surface of a circular cylinder (excluding end disks) */
+/* 	// is 1/4 of its area */
+/* 	o_d += 0.25 * vm.wood_area * vm.l / box_volume; */
+/*       } */
+
+/*     } */
+/*     return o_d; */
+/*   } */
+
+/*     //This is to take care of the direction of the beam of radiation */
+/*     PositionVector beam_dir; */
+/*  private: */
+/*     LGMdouble box_side_length; */
+/*     LGMdouble box_volume; */
+/*     LGMdouble par_a, par_b; */
+/*     Point seg_loc;   //location of segment */
+/*     ParametricCurve K; */
+/*     bool dir_effect;         //If direction effect of segments in box considered */
+/*     bool wood;               //If woody parts are considered */
+/*     LGMdouble constant_star; //If this > 0, k = constant_star else k = star_mean */
+/*     bool correct_star;       //If star_eq -> star correction is done */
+/* }; */
+
+//Tassa valonlasenta voxelspacessa
+
+// Calculation of radiation: voxel space & border forest with storing of
+// Qin_stand into the segment (is otherwise as EvaluateRadiationForCfTreeSegment_1)
+
+//This functor EvaluateRadiationForCfTreeSegment evaluates shading
+//caused by all other segments on this conifer segment. This functor
+//uses functor ShadingEffectOfCfTreeSegment<TS,BUD> to go through all
+//segments to check the shading.
+
+//If the attributes voxel_space and border_forest are set (then
+//voxel_space != NULL), the attenuation of the bean in the voxel_space
+//and border_forest is taken into consideration.
+
+
+
+//This functor EvaluateRadiationForCfTreeSegment evaluates shading
+//caused by all other segments on this conifer segment. This functor
+//uses functor ShadingEffectOfCfTreeSegment<TS,BUD> to go through all
+//segments to check the shading.
+
+/* template <class TS, class BUD> */
+/*   TreeCompartment<TS,BUD>* EvaluateRadiationForCfTreeSegment_3<TS,BUD>::operator() (TreeCompartment<TS, BUD>* tc)const */
+/* { */
+/*   if (TS* ts = dynamic_cast<TS*>(tc)){ */
+/*     SetValue(*ts, LGAQin, 0.0); */
+/*     SetValue(*ts, LGAQabs, 0.0); */
+/*     //Radiation  conditions are not  evaluated if  the segment  has no */
+/*     //foliage (in practice  there would be division by  0 in computing */
+/*     //absorbed radiation) */
+/*     if (GetValue(*ts, LGAWf) < R_EPSILON){ */
+/* 	return tc; */
+/*     } */
+
+/*     Tree<TS,BUD>& tt = GetTree(*ts); */
+/*     FirmamentWithMask& firmament = GetFirmament(tt); */
+/*     int number_of_sectors = firmament.numberOfRegions(); */
+/*     double a_dot_b = 0.0; */
+/*     vector<double> radiation_direction(3); */
+/*     Point middle = GetMidPoint(*ts); */
+
+/*     vector<double> v(number_of_sectors,0.0);  */
+/*     //    ShadingEffectOfCfTreeSegment_1<TS,BUD> s_e(ts,K,v); */
+/*     //This  goes  through  the  tree  and computes  shading  based  on */
+/*     //1)distance  light beam traverses  in foliage,  2)foliage density */
+/*     //and 3) inclination light beam hits the segment. */
+/*     //HUOMMMM   !!!!!!!! */
+/*     //ForEach(tt,s_e); */
+    
+/*     //implement  "Ip  =  Iope^(-Vp)",  s[i] =  radiation  coming  from */
+/*     //direction i after this */
+/*     //    vector<double>& s = s_e.getS(); */
+/*     vector<double> s(number_of_sectors, 0.0); */
+/*     vector<double> qis(number_of_sectors, 0.0); */
+
+/*     AccumulateOpticalDepth AOD(voxel_space->getXSideLength(), par_a, par_b, middle,K, */
+/* 			       dir_effect, wood, correct_star, constant_star); */
+/*     for (int i = 0; i < number_of_sectors; i++){ */
+/*       MJ Iop = firmament.diffuseRegionRadiationSum(i,radiation_direction); */
+      
+/* 	//first attenuation in the voxel space */
+/* 	LGMdouble transmission_voxel = 1.0; */
+/* 	vector<VoxelMovement> vm; */
+/* 	PositionVector dir(radiation_direction); */
+
+/* 	voxel_space->getRoute(vm, middle, dir, K, false);  //this shoud return only the "box route" */
+
+/* 	//with traveled lengths */
+/* 	//calculate the extinction coeffient */
+/* 	//Consider also the mean direction of shoots in box */
+/* 	AOD.beam_dir = dir; */
+    
+/* 	LGMdouble optical_depth = accumulate(vm.begin(),vm.end(),0.0,AOD); */
+
+/* 	//If tree itself is in calculation (dump_self = true) subtract the effect of own foliage */
+/* 	//NOTE Assumes that all own foliage is in the first (= the one that contains the middle point */
+/* 	//of the segment) voxel box */
+
+/* 	if(dump_self) { */
+/* 	  LGMdouble k =  max(0.0,-0.014+1.056*vm[0].STAR_mean); */
+/* 	  optical_depth -= k * GetValue(*ts,LGAAf) * vm[0].l / voxel_space->getBoxVolume(); */
+
+/* 	  if(optical_depth < 0.0) */
+/* 	    optical_depth = 0.0; */
+/* 	} */
+/* 	if(optical_depth > R_EPSILON) */
+/* 	  if(optical_depth < 20.0) */
+/* 	    transmission_voxel = exp(-optical_depth); */
+/* 	  else */
+/* 	    transmission_voxel = 0.0; */
+/* 	Iop *= transmission_voxel; */
+
+/* 	//then attenuation in the BorderForest */
+/* 	if(evaluate_border) */
+/* 	  Iop *= border_forest->getBorderForestExtinction(middle, dir,k_border_conifer); */
+ 
+/*       qis[i] = Iop; */
+/*       s[i] = Iop; */
+
+
+/* /\*       if (s[i] == HIT_THE_WOOD){ *\/ */
+/* /\* 	s[i] = 0.0; *\/ */
+/* /\*       } *\/ */
+/* /\*       else *\/ */
+/* /\* 	s[i] = Iop*exp(-s[i]); *\/ */
+      
+/*     } //End of no_sectors ... */
+
+
+/*    //Total incoming radiation and radiation after stand */
+/*     LGMdouble Qin_stand = accumulate(qis.begin(),qis.end(),0.0); */
+/*     ts->setQinStand(Qin_stand); */
+
+/*     MJ Q_in = accumulate(s.begin(),s.end(),0.0); */
+    
+/*     //s contains now incoming radiation from each sector. Evaluate how */
+/*     //much segment absorbs from incoming radation. */
+/*     LGMdouble Lk, inclination, Rfk, Ack, extinction, sfk, Ask, Wfk; */
+/*     Lk = Rfk = Ack =  extinction = sfk = Ask = Wfk = 0.0; */
+/*     Lk = GetValue(*ts, LGAL);   //length is > 0.0, otherwise we would not bee here */
+/*     Rfk = GetValue(*ts, LGARf);  //Radius to foliage limit  */
+/*     Wfk = GetValue(*ts, LGAWf); //Foliage mass */
+/*     //sfk  = GetValue(tt, LGPsf); //Foliage m2/kg from tree */
+/*     sfk  = GetValue(*ts, LGAsf); //Foliage m2/kg from segment!!! */
+
+/*     for (int i = 0; i < number_of_sectors; i++){ */
+/*       firmament.diffuseRegionRadiationSum(i,radiation_direction); */
+/*       a_dot_b = Dot(GetDirection(*ts), PositionVector(radiation_direction)); */
+/*       inclination = PI_DIV_2 - acos(fabs(a_dot_b)); */
+
+/*       Ack = 2.0*Lk*Rfk*cos(inclination) + PI_VALUE*pow(Rfk,2.0)*sin(inclination); */
+/*       extinction = (double)K(inclination); */
+
+/*       if (Ack == 0.0){ */
+/* 	cout << "ERROR EvaluateRadiationForCfTreeSegment: Ack == 0 (division by 0)" */
+/* 	     << endl; */
+/*       } */
+
+/*       //implement I(k)p = Ip*Ask, Note  Ack must be greater than 0 (it */
+/*       //should if there is any foliage) */
+/*       Ask = (1.0 - exp(-extinction*((sfk*Wfk)/Ack)))*Ack; */
+/*       s[i] *= Ask; */
+/*     } */
+/*     MJ Q_abs = accumulate(s.begin(),s.end(),0.0); */
+/*     SetValue(*ts, LGAQabs, Q_abs); */
+/*     SetValue(*ts, LGAQin, Q_in); */
+/*   } */
+/*   return tc; */
+/* }  //end of EvaluateRadiationForCfTreeSegment()  { ... */
 
 
 
@@ -1133,7 +1552,7 @@ template<class TREE, class TS,class BUD>
 
     EvaluateRadiationForCfTreeSegment_3<ScotsPineSegment,ScotsPineBud>
       Rad3(K, vs, &border_forest, false/*border forest*/, a, b, only_self_dump, k_border_conifer,
-	   box_dir_effect, wood_voxel, correct_star, constant_star);
+       box_dir_effect, wood_voxel, correct_star, constant_star,calculateDirectionalStar);
     ForEach(*t,Rad3);
   }
 

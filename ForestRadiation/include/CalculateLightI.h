@@ -284,9 +284,11 @@ template <class TS, class BUD>
     //    vector<double>& s = s_e.getS();
     vector<double> s(number_of_sectors, 0.0);
     vector<double> qis(number_of_sectors, 0.0);
+     std::cout << std::noboolalpha << calculateDirectionalStar << " == " << std::boolalpha << calculateDirectionalStar << std::endl;
 
     AccumulateOpticalDepth AOD(voxel_space->getXSideLength(), par_a, par_b, middle,K,
-			       dir_effect, wood, correct_star, constant_star);
+                   dir_effect, wood, correct_star, constant_star, calculateDirectionalStar);
+
     for (int i = 0; i < number_of_sectors; i++){
       MJ Iop = firmament.diffuseRegionRadiationSum(i,radiation_direction);
       
@@ -295,7 +297,8 @@ template <class TS, class BUD>
 	vector<VoxelMovement> vm;
 	PositionVector dir(radiation_direction);
 
-	voxel_space->getRoute(vm, middle, dir, K, false);  //this shoud return only the "box route"
+    voxel_space->getRoute(vm, middle, dir, K, false,calculateDirectionalStar);  //this shoud return only the "box route"
+
 
 	//with traveled lengths
 	//calculate the extinction coeffient
@@ -303,6 +306,8 @@ template <class TS, class BUD>
 	AOD.beam_dir = dir;
     
 	LGMdouble optical_depth = accumulate(vm.begin(),vm.end(),0.0,AOD);
+    cout.precision(15);
+    cout<<"THIS IS OPTICAL DEPTH"<<""<<optical_depth<<endl;
 
 	//If tree itself is in calculation (dump_self = true) subtract the effect of own foliage
 	//NOTE Assumes that all own foliage is in the first (= the one that contains the middle point
