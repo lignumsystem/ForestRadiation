@@ -162,11 +162,12 @@ public:
 
         if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) {
             LGMdouble k;
-            vector<LGMdouble>  kdir;
+            vector<LGMdouble>  kdir(8,0.0);
 
             if(calculateDirectionalStar){
                 kdir = vm.starDir;
-
+//                for (int x =0;x<8;x++){
+//                    cout<<"This is the stardir"<<kdir[x]<<endl;}
 
             }
             else{
@@ -224,8 +225,8 @@ public:
                 // is 1/4 of its area
                 o_d += 0.25 * vm.wood_area * vm.l / box_volume;
             }
-            cout.precision(15);
-            cout<<"this is the o_d value"<<o_d<<endl;
+          //  cout.precision(15);
+           // cout<<"this is the o_d value"<<o_d<<endl;
         }
         return o_d;
     }

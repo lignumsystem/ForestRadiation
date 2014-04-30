@@ -13,6 +13,7 @@
 #include <SomeFunctors.h>
 #include <CalculateLight.h>
 #include <VoxelSpace.h>
+#include <FindForestBoundingBox.h>
 #include <XMLTree.h>
 #include <StandDescriptor.h>
 #include <VoxelSpace.h>
