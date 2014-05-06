@@ -795,22 +795,22 @@ template<class TREE, class TS,class BUD>
     cum_lai += lai_h[i].second;
     cout << lai_h[i].first << " " << lai_h[i].second << " " << cum_lai << endl;
   }
-  cout << "This for LAI voxel space" << endl << endl;
-    cout << endl << "getArea() " << lai_vs.getArea() 
-	 << " getLowerLeftCorner() " << lai_vs.getLowerLeftCorner();
-    cout << " getUpperRightCorner() " << lai_vs.getUpperRightCorner();
-    cout << " getNumberOfBoxes() " << lai_vs.getNumberOfBoxes() << " getNumberOfFilledBoxes() "
-	 << lai_vs.getNumberOfFilledBoxes() << " getNumberOfTreeSegments() "
-	 << lai_vs.getNumberOfTreeSegments() << endl;
-    cout << " getBoxVolume() " << lai_vs.getBoxVolume() << " getXSideLength() "
-	 << lai_vs.getXSideLength() << endl;
-    cout << " getYSideLength() " << lai_vs.getYSideLength() << " getZSideLength() "
-	 << lai_vs.getZSideLength() << endl;
-    cout << " getNoBoxX() " << lai_vs.getNoBoxX() << " getNoBoxY() " << lai_vs.getNoBoxY()
-	 << " getNoBoxZ() " << lai_vs.getNoBoxX() << endl;
-    cout << " getNeedleArea() " << lai_vs.getNeedleArea() << " getLeafArea() "
-	 <<  lai_vs.getLeafArea() << endl;
-    cout << endl;
+//  cout << "This for LAI voxel space" << endl << endl;
+//    cout << endl << "getArea() " << lai_vs.getArea()
+//	 << " getLowerLeftCorner() " << lai_vs.getLowerLeftCorner();
+//    cout << " getUpperRightCorner() " << lai_vs.getUpperRightCorner();
+//    cout << " getNumberOfBoxes() " << lai_vs.getNumberOfBoxes() << " getNumberOfFilledBoxes() "
+//	 << lai_vs.getNumberOfFilledBoxes() << " getNumberOfTreeSegments() "
+//	 << lai_vs.getNumberOfTreeSegments() << endl;
+//    cout << " getBoxVolume() " << lai_vs.getBoxVolume() << " getXSideLength() "
+//	 << lai_vs.getXSideLength() << endl;
+//    cout << " getYSideLength() " << lai_vs.getYSideLength() << " getZSideLength() "
+//	 << lai_vs.getZSideLength() << endl;
+//    cout << " getNoBoxX() " << lai_vs.getNoBoxX() << " getNoBoxY() " << lai_vs.getNoBoxY()
+//	 << " getNoBoxZ() " << lai_vs.getNoBoxX() << endl;
+//    cout << " getNeedleArea() " << lai_vs.getNeedleArea() << " getLeafArea() "
+//	 <<  lai_vs.getLeafArea() << endl;
+//    cout << endl;
 
 
   if(evaluate_LAI) {

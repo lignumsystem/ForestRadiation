@@ -25,3 +25,9 @@ SOURCES += generate-tree-locations.cc \
            lignum-radiation.cc \
            src/metabolism.cc \
            src/borderforest.cc 
+
+HEADERS += \
+    GrowthLoopRadiationI.h \
+    GrowthLoopRadiation.h \
+    include/CalculateLight.h \
+    include/CalculateLightI.h

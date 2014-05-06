@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 #include <BorderForest.h>
+#include<limits>
 using namespace std;
 
 using namespace Lignum;
@@ -162,12 +163,24 @@ public:
 
         if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) {
             LGMdouble k;
-            vector<LGMdouble>  kdir(8,0.0);
-
+            vector<LGMdouble>  kdir(8);
+            vector<LGMdouble>  angle(8);
+            angle[0]=0.0000000;
+            angle[1]=0.2243995;
+            angle[2]=0.4487990;
+            angle[3]=0.6731984;
+            angle[4]=0.8975979;
+            angle[5]=1.1219974;
+            angle[6]=1.3463969;
+            angle[7]=1.5707963;
+            std::vector<LGMdouble>::iterator low,up;
+         //   cout<<"beam_dir"<<beam_dir.getZ() <<endl;
+          //  cout<<"angle"<<angle<<endl;
+           // exit(0);
             if(calculateDirectionalStar){
                 kdir = vm.starDir;
 //                for (int x =0;x<8;x++){
-//                    cout<<"This is the stardir"<<kdir[x]<<endl;}
+//                    cout<<"This is the stardir"<<vm.starDir[x]<<endl;}
 
             }
             else{
@@ -209,9 +222,20 @@ public:
             /* 	cout << " u " << u << endl; */
             /*       } */
             if(calculateDirectionalStar){
-                LGMdouble secondfactor = effect * vm.af * vm.l / box_volume;
-                std::transform(kdir.begin(),kdir.end(),kdir.begin(),std::bind1st(std::multiplies<LGMdouble>(),secondfactor));
-                o_d  = std::accumulate(kdir.begin(),kdir.end(),0);
+              //  LGMdouble secondfactor = effect * vm.af * vm.l / box_volume;
+               // std::transform(kdir.begin(),kdir.end(),kdir.begin(),std::bind1st(std::multiplies<LGMdouble>(),secondfactor));
+               // o_d  = std::accumulate(kdir.begin(),kdir.end(),0);
+                low  = std::lower_bound(angle.begin(),angle.end(),beam_dir.getZ());
+                up   = std::upper_bound(angle.begin(),angle.end(),beam_dir.getZ());
+                LGMdouble lowerIndex = low - angle.begin();
+
+                LGMdouble upperIndex = lowerIndex+1;
+
+                k = kdir[lowerIndex] +(kdir[upperIndex]-kdir[lowerIndex])*((beam_dir.getZ()-angle[lowerIndex])/(angle[upperIndex]-angle[lowerIndex]));
+                cout.precision(15);
+           //     cout<<"kdir[lowerIndex]"<< " "<<(beam_dir.getZ()-angle[lowerIndex])<<" " << (angle[upperIndex]-angle[lowerIndex])<<" "<<k <<endl;
+             //   exit(0);
+                o_d += effect * k * vm.af * vm.l / box_volume;
 
             }
             else{
@@ -223,11 +247,15 @@ public:
             if(wood) {
                 //Mean projection area of surface of a circular cylinder (excluding end disks)
                 // is 1/4 of its area
+
                 o_d += 0.25 * vm.wood_area * vm.l / box_volume;
             }
-          //  cout.precision(15);
-           // cout<<"this is the o_d value"<<o_d<<endl;
+            cout.precision(15);
+            //cout<<"this is the o_d value "<<o_d<< " "<< effect<<" "<<k<<" "<<vm.af<<" "<<vm.l<<" "<< box_volume<<" "<<vm.wood_area<< endl;
+            //exit(0);
         }
+
+
         return o_d;
     }
 

@@ -304,10 +304,12 @@ template <class TS, class BUD>
 	//calculate the extinction coeffient
 	//Consider also the mean direction of shoots in box
 	AOD.beam_dir = dir;
+    //cout<<"dir"<<dir<<endl;
+    //exit(0);
     
 	LGMdouble optical_depth = accumulate(vm.begin(),vm.end(),0.0,AOD);
-    cout.precision(15);
-    cout<<"THIS IS OPTICAL DEPTH"<<""<<optical_depth<<endl;
+   // cout.precision(15);
+  //  cout<<"THIS IS OPTICAL DEPTH"<<""<<optical_depth<<endl;
 
 	//If tree itself is in calculation (dump_self = true) subtract the effect of own foliage
 	//NOTE Assumes that all own foliage is in the first (= the one that contains the middle point
