@@ -87,13 +87,9 @@ template<class TREE, class TS, class BUD>
 void MainProgramAsClass<TREE,TS,BUD>::checkCommandLine(int argc, char** argv)const
 {
   //At least three  mandatory arguments required 
-  if (argc < 4){
-    cout << "Three mandatory arguments are required!" << endl << endl;
+  if (argc < 3){
+    cout << "Two mandatory arguments are required!" << endl << endl;
     usage();
-    exit(0);
-  }
-  else if (CheckCommandLine(argc,argv,"-iter") == false){
-    cout << "Mandatory -iter <num> option missing" << endl;
     exit(0);
   }
   else if (CheckCommandLine(argc,argv,"-metafile") == false){
@@ -551,6 +547,8 @@ template<class TREE, class TS,class BUD>
   } //for(int i = ...
 }    //::createTrees(
 
+
+//====================================================================================
 template<class TREE, class TS,class BUD>
   void MainProgramAsClass<TREE, TS,BUD>::initializeVoxelSpace()
 {
@@ -572,7 +570,7 @@ template<class TREE, class TS,class BUD>
   }
   vs = new VoxelSpace(Point(0,0,0),Point(vx,vy,vz),
 		      s1,s2,s3,
-		      static_cast<int>(vx/s1),static_cast<int>(vy/s2),static_cast<int>(vz/s3),
+		      static_cast<int>(vx/s1)+1,static_cast<int>(vy/s2)+1,static_cast<int>(vz/s3)+1,
 		      GetFirmament(*vtree[0]));
 
    //Now the structure of the tree in voxel space is specified
@@ -619,7 +617,7 @@ template<class TREE, class TS,class BUD>
 	  if(sqrt(pow(p.getX()-ms.getX(),2.0)+pow(p.getY()-ms.getY(),2.0)) > target_tree_rad) {
 	    Point loc = p - Point(0.0,0.0,deltaZ/2.0);
 	    
-	    Point p1 = p - ms;
+	    //	    Point p1 = p - ms;
 	    
 	    //	    double ker = (0.5/sqrt(2.0))/sqrt(pow(p1.getX(),2.0)+pow(p1.getY(),2.0));
 	    //	    PositionVector suunta(ker*p1.getX(),ker*p1.getY(),sqrt(1.0-0.25));
@@ -661,8 +659,7 @@ template<class TREE, class TS,class BUD>
 
   }  //if(voxel_tree) ....
 
-  //End of virittely valoa varten
-}  //End of    ::createTrees() ...
+} // end of initializeVoxelSpace() 
 
 template<class TREE, class TS,class BUD>
 void MainProgramAsClass<TREE, TS,BUD>::initializeFunctions()
@@ -912,7 +909,7 @@ template<class TREE, class TS,class BUD>
     }
   }
 
-  //Finally set the target tree as the fisrt tree in the vtree vector 
+  //Finally set the target tree as the first tree in the vtree vector 
   vtree.insert(vtree.begin(),t_t);
   no_trees++;
 
@@ -925,8 +922,6 @@ template<class TREE, class TS,class BUD>
   //Taytyy parantaa jatkossa
   //  LGMdouble green_ext = (0.97 + 2.0* 0.1/pow(vs->getBoxVolume(), 0.33333))*0.14;
 
-  //Virittelya valonlaskentaa varten
-  //myos valonlaskennan parametreja, joita luetaan tiedostosta
 
   LGMdouble a, b;
   ifstream ab_file("box-radiation.txt");
@@ -1021,7 +1016,6 @@ template<class TREE, class TS,class BUD>
        exit(0);
      }
 
-     //Virittelya valonlaskentaa varten
      //Tassa tulostetaan vtree vektorin 1. puun tiedot. Se on target puu
 
   if(one_time) {
@@ -1059,8 +1053,6 @@ template<class TREE, class TS,class BUD>
   }
  
      exit(0);
-
-     //end of virittelya
 
    }
 }  //end of calculateRadiation()  { ..
