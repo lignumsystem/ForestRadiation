@@ -15,7 +15,7 @@ win32:CONFIG += console
 
 #HEADERS += 
 
-SOURCES += generate-tree-locations.cc \
+SOURCES += src/generate-tree-locations.cc \
            lignum-radiation.cc \
            src/metabolism.cc \
            src/borderforest.cc 
