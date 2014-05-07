@@ -162,9 +162,11 @@ public:
 
         if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) {
             LGMdouble k;
+            //********************************************Additional Code for the vectors of directional Star Values***************************************************
             vector<LGMdouble>  kdir(7);
             vector<LGMdouble>  angle(7);
             int count = 0;
+            // Code added by KV this is the angle of inclination used for interpolation.
             for(double phi=0;phi<=PI_VALUE/2.0; phi+=PI_VALUE/12.0){
                 angle[count] = phi;
                 count+=1;
@@ -178,13 +180,12 @@ public:
                     k = constant_star;
                 else
                     k = vm.STAR_mean;
-
             }
 
             if(correct_star) {
                 k = max(0.0,-0.014+1.056*k);
             }
-
+           //*************************************************************************************************************************************************************
             //NOTE: here transformation STAR_eq --> STAR; documented in
             //~/Riston-D/E/LIGNUM/Light/summer-09-test/STAR-vs-STAR_eq.pdf
 
@@ -211,41 +212,31 @@ public:
             /* 	effect = 1.0 - u + u * K(inclination)/K(0.7); */
             /* 	cout << " u " << u << endl; */
             /*       } */
+
+            //Code to evaluate k if calculateDirectionalStar is true then first search the lower bound then obtain the index by sebtracting the
+            //beginning. Then add one to the lowest (or rather closest lower bound) index to get the upper bound index between which we need to
+            //interpolate the new value.
+
             if(calculateDirectionalStar){
-                //  LGMdouble secondfactor = effect * vm.af * vm.l / box_volume;
-                // std::transform(kdir.begin(),kdir.end(),kdir.begin(),std::bind1st(std::multiplies<LGMdouble>(),secondfactor));
-                // o_d  = std::accumulate(kdir.begin(),kdir.end(),0);
                 low  = std::lower_bound(angle.begin(),angle.end(),beam_dir.getZ());
                 up   = std::upper_bound(angle.begin(),angle.end(),beam_dir.getZ());
                 LGMdouble lowerIndex = low - angle.begin();
-
                 LGMdouble upperIndex = lowerIndex+1;
-
                 k = kdir[lowerIndex] +(kdir[upperIndex]-kdir[lowerIndex])*((beam_dir.getZ()-angle[lowerIndex])/(angle[upperIndex]-angle[lowerIndex]));
                 cout.precision(15);
-                //     cout<<"kdir[lowerIndex]"<< " "<<(beam_dir.getZ()-angle[lowerIndex])<<" " << (angle[upperIndex]-angle[lowerIndex])<<" "<<k <<endl;
-                //   exit(0);
                 o_d += effect * k * vm.af * vm.l / box_volume;
 
             }
             else{
-
                 o_d += effect * k * vm.af * vm.l / box_volume;
             }
-
-
             if(wood) {
                 //Mean projection area of surface of a circular cylinder (excluding end disks)
                 // is 1/4 of its area
-
                 o_d += 0.25 * vm.wood_area * vm.l / box_volume;
             }
             cout.precision(15);
-            //cout<<"this is the o_d value "<<o_d<< " "<< effect<<" "<<k<<" "<<vm.af<<" "<<vm.l<<" "<< box_volume<<" "<<vm.wood_area<< endl;
-            //exit(0);
         }
-
-
         return o_d;
     }
 
@@ -257,11 +248,11 @@ private:
     LGMdouble par_a, par_b;
     Point seg_loc;   //location of segment
     ParametricCurve K;
-    bool dir_effect;         //If direction effect of segments in box considered
-    bool wood;               //If woody parts are considered
-    LGMdouble constant_star; //If this > 0, k = constant_star else k = star_mean
-    bool correct_star;       //If star_eq -> star correction is done
-    bool calculateDirectionalStar;           // Directional Star values are required this is used
+    bool dir_effect;                  // If direction effect of segments in box considered
+    bool wood;                       //  If woody parts are considered
+    LGMdouble constant_star;        //   If this > 0, k = constant_star else k = star_mean
+    bool correct_star;             //    If star_eq -> star correction is done
+    bool calculateDirectionalStar;//     Directional Star values are required this is used
 };
 
 
