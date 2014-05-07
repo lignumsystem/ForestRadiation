@@ -1,6 +1,6 @@
 //Include Lignum implementation
 #include <Lignum.h>
-#include <GrowthLoopRadiation.h> 
+#include <MainProgramAsClass.h> 
 //Include the implementation of the tree segment and bud
 #include <ScotsPine.h>
 
@@ -27,33 +27,33 @@ int ran3_seed = -9648383; //-23797843;
 
 int main(int argc, char** argv)
 {
-  GrowthLoop<ScotsPineTree,ScotsPineSegment,ScotsPineBud > gloop;
+  MainProgramAsClass<ScotsPineTree,ScotsPineSegment,ScotsPineBud > main_program;
 
   ran3(&ran3_seed);
 
-  gloop.setVerbose(true);
+  main_program.setVerbose(true);
   //Check and parse command line, the  command line includes switches to control
   //the simulation
-  gloop.parseCommandLine(argc,argv);
-  if(gloop.getOnlySelf()) {
-    gloop.calculateRadiationOnlySelf();
+  main_program.parseCommandLine(argc,argv);
+  if(main_program.getOnlySelf()) {
+    main_program.calculateRadiationOnlySelf();
   }
   else {
-    if(gloop.getTreesFromFile()) {
-      gloop.getTreesAndPositions();
+    if(main_program.getTreesFromFile()) {
+      main_program.getTreesAndPositions();
     }
     else {
-      gloop.setTreeLocations();
-      gloop.createTrees();  //to locations set above
+      main_program.setTreeLocations();
+      main_program.createTrees();  //to locations set above
    
       //Write only the file about positions & trees in this case
-      if(gloop.getWriteOnlyFile() && gloop.getManyTrees())
+      if(main_program.getWriteOnlyFile() && main_program.getManyTrees())
 	exit(0);
     }
   }
 
-  gloop.initializeVoxelSpace();
+  main_program.initializeVoxelSpace();
 
-  gloop.setVoxelSpaceAndBorderForest();
-  gloop.calculateRadiation();
+  main_program.setVoxelSpaceAndBorderForest();
+  main_program.calculateRadiation();
 }

@@ -1,5 +1,5 @@
-#ifndef GROWTH_LOOPRADIATION_H
-#define GROWTH_LOOPRADIATION_H
+#ifndef MAIN_PROGRAM_AS_CLASS_H
+#define MAIN_PROGRAM_AS_CLASS_H
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -19,16 +19,16 @@
 #include <BorderForest.h>
 #include <star_mean.h>
 
-template <class TREE, class TS, class BUD>//,class LSYSTEM>
-  class GrowthLoop{
+template <class TREE, class TS, class BUD>
+  class MainProgramAsClass{
  public:
-  GrowthLoop()
+  MainProgramAsClass()
     :vs(NULL),verbose(false),iterations(0),
     num_parts(1.0), tree_distance(0.0),
     writevoxels(false), generate_locations(false),
     no_trees(0), wood_voxel(true), gap_radius(0.0), middle_stand(0.0,0.0),
     target_tree_rad(0.5) {}
-    ~GrowthLoop();
+    ~MainProgramAsClass();
     void usage()const;
     void checkCommandLine(int argc, char** argv)const;
     void parseCommandLine(int argc, char** argv);
@@ -42,7 +42,7 @@ template <class TREE, class TS, class BUD>//,class LSYSTEM>
     void initializeTrees();
     void initializeVoxelSpace();
     void initializeFunctions();
-    void initializeGrowthLoop();
+    void initializeMainProgramAsClass();
     void growthLoop();
     //    void increaseXi(TREE& t);
    void setTreeLocations();
@@ -167,4 +167,4 @@ template <class TS,class BUD>
 
 #endif
 
-#include <GrowthLoopRadiationI.h>
+#include <MainProgramAsClassI.h>

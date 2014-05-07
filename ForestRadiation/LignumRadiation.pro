@@ -15,4 +15,4 @@
 #target : lig-radiation
 
 TEMPLATE = subdirs
-SUBDIRS = LignumForestSubdirs.pro LignumRadiationMain.pro 
+SUBDIRS = LignumRadiationSubdirs.pro LignumRadiationMain.pro 
