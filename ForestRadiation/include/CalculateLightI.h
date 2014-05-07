@@ -284,7 +284,7 @@ template <class TS, class BUD>
     //    vector<double>& s = s_e.getS();
     vector<double> s(number_of_sectors, 0.0);
     vector<double> qis(number_of_sectors, 0.0);
-     std::cout << std::noboolalpha << calculateDirectionalStar << " == " << std::boolalpha << calculateDirectionalStar << std::endl;
+    // std::cout << std::noboolalpha << calculateDirectionalStar << " == " << std::boolalpha << calculateDirectionalStar << std::endl;
 
     AccumulateOpticalDepth AOD(voxel_space->getXSideLength(), par_a, par_b, middle,K,
                    dir_effect, wood, correct_star, constant_star, calculateDirectionalStar);
