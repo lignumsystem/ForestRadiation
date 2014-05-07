@@ -33,7 +33,6 @@ using namespace sky;
 // stand with border_forest->getBorderForestExtinction().
 // This function does not evaluate the shading by surrounding trees (Qin_stand) and border forest separately 
 // (slighthly faster);
-// EvaluateRadiationForCfTreeSegment_1s (defined in ../GrowthLoopRadiationI.h) does that.
 
 //If the attributes voxel_space and border_forest are set (then
 //voxel_space != NULL), the attenuation of the beam in the voxel_space
