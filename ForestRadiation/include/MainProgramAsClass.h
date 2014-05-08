@@ -23,7 +23,7 @@ template <class TREE, class TS, class BUD>
   class MainProgramAsClass{
  public:
   MainProgramAsClass()
-    :vs(NULL),verbose(false),iterations(0),
+    :vs(NULL),verbose(false),
     num_parts(1.0), tree_distance(0.0),
     writevoxels(false), generate_locations(false),
     no_trees(0), wood_voxel(true), gap_radius(0.0), middle_stand(0.0,0.0),
@@ -66,14 +66,12 @@ template <class TREE, class TS, class BUD>
     StandDescriptor<TREE> stand;
     BorderForest border_forest;
     bool verbose;
-    int iterations;
     int num_parts;
     string location_file;
     double tree_distance;//Minimum distance between trees in meters
 
     double treeAf; //Foliage area of the tree
     DCLData dcl;//Diameter and heigth at the crown base.
-    string metafile;
     string voxelfile;
     string xmlfile; //XML file where the tree can be saved and restored from
     bool writevoxels;

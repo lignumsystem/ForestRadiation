@@ -29,7 +29,7 @@ MainProgramAsClass<TREE,TS,BUD>::~MainProgramAsClass()
 template<class TREE, class TS, class BUD>
   void MainProgramAsClass<TREE,TS,BUD>::usage()const
 {
-  cout << "Usage:  ./lig-forest -iter <value>  -metafile <file>  -voxelspace <file>" <<endl;
+  cout << "Usage:  ./lig-forest -voxelspace <file>" <<endl;
   cout << "[-numParts <parts>]  [-treeDist <dist>] [-hw <hw_start>] [-viz]" <<endl;
   cout << "[-xml <filename>] [-writeVoxels]" <<endl;
   cout << "[-treeFile <filename>] [-generateLocations  <num>] [-woodVoxel] [-treeLocations <file>]" << endl;
@@ -87,15 +87,15 @@ template<class TREE, class TS, class BUD>
 void MainProgramAsClass<TREE,TS,BUD>::checkCommandLine(int argc, char** argv)const
 {
   //At least three  mandatory arguments required 
-  if (argc < 3){
+  if (argc < 2){
     cout << "Two mandatory arguments are required!" << endl << endl;
     usage();
     exit(0);
   }
-  else if (CheckCommandLine(argc,argv,"-metafile") == false){
-    cout << "Mandatory -metafile <MetaFile.txt> option missing" << endl;
-    exit(0);
-  }
+/*   else if (CheckCommandLine(argc,argv,"-metafile") == false){ */
+/*     cout << "Mandatory -metafile <MetaFile.txt> option missing" << endl; */
+/*     exit(0); */
+/*   } */
   else if (CheckCommandLine(argc,argv,"-voxelspace") == false){
     cout << "Mandatory -voxelspace <VoxelSpace.txt> option missing" << endl;
     exit(0);
@@ -116,14 +116,7 @@ void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
 
   //Mandatory arguments
   string clarg;
-  if (ParseCommandLine(argc,argv,"-iter", clarg)){
-    iterations = atoi(clarg.c_str());
-  }
 
-  clarg.clear();
-  if (ParseCommandLine(argc,argv,"-metafile", clarg)){
-    metafile = clarg;
-  }
   //Read here and set middle_stand (may be aread and set also in other
   //places
   clarg.clear();
@@ -1019,7 +1012,10 @@ template<class TREE, class TS,class BUD>
      //Tassa tulostetaan vtree vektorin 1. puun tiedot. Se on target puu
 
   if(one_time) {
-     ForEach(*t, SegmentProductionBalance(phprodfile));
+   SegmentProductionBalance spb(phprodfile);
+    spb.setQmax(GetFirmament(*t).diffuseBallSensor());
+
+     ForEach(*t, spb);
   }
   else {
     //int bs;                 // box STAR  0 = constant value,
@@ -1049,7 +1045,10 @@ template<class TREE, class TS,class BUD>
     info.location_file = location_file;
     info.tree_file = input_tree_file;
 
-    ForEach(*t, SegmentProductionBalance(phprodfile, info));
+    SegmentProductionBalance spb(phprodfile, info);
+    spb.setQmax(GetFirmament(*t).diffuseBallSensor());
+
+    ForEach(*t, spb);
   }
  
      exit(0);
@@ -1170,8 +1169,10 @@ template<class TREE, class TS,class BUD>
     info.vox = voxboxside;
     info.location_file = location_file;
     info.tree_file = input_tree_file;
-
-    ForEach(*t, SegmentProductionBalance(phprodfile, info));
+    
+    SegmentProductionBalance spb(phprodfile, info);
+    spb.setQmax(GetFirmament(*t).diffuseBallSensor());
+    ForEach(*t, spb);
   }
  
 }

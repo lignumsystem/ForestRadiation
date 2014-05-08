@@ -422,12 +422,11 @@ class SegmentProductionBalanceInfo{
 
 class SegmentProductionBalance {
  public:
- SegmentProductionBalance(const string& filename): fname(filename)
+ SegmentProductionBalance(const string& filename): fname(filename), qmax(1.0)
   {
     one_time = true;
     ofstream f(fname.c_str() , ofstream::trunc);
-    f << "Height Dist_top Dist_stem Vigor Diam Length   Age    Wf   Af Qin   Qin_stand Qabs   Assim"
-      "   Respiration" << endl;
+    f << "Height Dist_top Dist_stem Qin Qmax" << endl;
     f.close();
   }
  SegmentProductionBalance(const string& filename,  SegmentProductionBalanceInfo in_fo): 
@@ -442,16 +441,7 @@ class SegmentProductionBalance {
       if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
 	LGMdouble Wf = GetValue(*ts,LGAWf);
 	if(Wf > 0.0) {
-	  LGMdouble Qin_stand = ts->getQinStand();
-	  LGMdouble P = GetValue(*ts, LGAP);
-	  LGMdouble M = GetValue(*ts,LGAM);
 	  LGMdouble Qin = GetValue(*ts,LGAQin);
-	  LGMdouble Qabs = GetValue(*ts,LGAQabs);
-	  LGMdouble D = 200.0*GetValue(*ts,LGAR);
-	  LGMdouble L = 100.0*GetValue(*ts,LGAL);
-	  LGMdouble Age = GetValue(*ts, LGAage);
-	  LGMdouble Vi = GetValue(*ts, LGAvi);
-	  LGMdouble Af = 10000.0*GetValue(*ts, LGAAf);
 	  Tree<ScotsPineSegment,ScotsPineBud>& t = GetTree(*ts);
 	  LGMdouble H = GetValue(t, LGAH);
 	  Point pp = GetPoint(*ts);
@@ -463,15 +453,12 @@ class SegmentProductionBalance {
 
 	  ofstream f(fname.c_str() , ofstream::app);
 	  if(one_time) {
-	    f << pp.getZ() << " " << ver_dist << " " << hor_dist << " " << Vi << " " << D << " " << L << " "
-	      << Age << " " << Wf << " " << Af << " " << Qin << " " << Qin_stand << " " << Qabs << " "
-	      << P << " " << M << endl;
+	    f << pp.getZ() << " " << ver_dist << " " << hor_dist << " " << Qin << " " << qmax << endl;
 	  }
 	  else {
 	    f << info.location_file << " " << info.tree_file << " "
 	      << info.vox << " " << info.bs << " " << info.corr << " "
-	      << pp.getZ() << " " << ver_dist << " " << hor_dist << " " << D << " " << L << " "
-	      << Wf << " " << Af << " " << Qin << " " << Qabs << " " << endl;
+	      << pp.getZ() << " " << ver_dist << " " << hor_dist << " " << Qin << " " << qmax << " " << endl;
 	  }
 	  f.close();
 	}
@@ -479,10 +466,13 @@ class SegmentProductionBalance {
       return tc;
     }
 
+  void setQmax(const LGMdouble qm) {qmax = qm;}
+
  private:
   string fname;
   bool one_time;
-  SegmentProductionBalanceInfo info; 
+  SegmentProductionBalanceInfo info;
+  LGMdouble qmax;
 };
 
 #endif
