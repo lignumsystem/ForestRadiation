@@ -29,17 +29,16 @@ MainProgramAsClass<TREE,TS,BUD>::~MainProgramAsClass()
 template<class TREE, class TS, class BUD>
   void MainProgramAsClass<TREE,TS,BUD>::usage()const
 {
-  cout << "Usage:  ./lig-forest -voxelspace <file>" <<endl;
-  cout << "[-numParts <parts>]  [-treeDist <dist>] [-hw <hw_start>] [-viz]" <<endl;
+  cout << "Usage:  ./lig-forest [-numParts <parts>]  [-treeDist <dist>] [-hw <hw_start>] [-viz]" <<endl;
   cout << "[-xml <filename>] [-writeVoxels]" <<endl;
   cout << "[-treeFile <filename>] [-generateLocations  <num>] [-woodVoxel] [-treeLocations <file>]" << endl;
-  cout << "[-phprodfile <file>] [-Voxbox <value>]" << endl;
+  cout << "[-resultfile <file>] [-Voxboxside <value>]" << endl;
   cout << "[-dumpSelf] [-inputTree <filename>] [-kBorderConifer <value>] [-GapRadius <value>]" << endl;
   cout << "[-targetTreeRad <value>] [-evaluateLAI] [-radMethod <num>] [-calculateSTAR <num>] [-calculateDirectionalStar] " << endl;
   cout << "[-voxelTree] [-boxDirEffect] [-treeInfo] [-segmentInfo <file>]" << endl;
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
-   cout << endl;
+  cout << "[-X <value>] [-Y <value>] [-Z <value>]" << endl;
   cout << "-generateLocations <num>  In this case <num> trees will be generated to random locations. If this" << endl;
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
@@ -48,8 +47,8 @@ template<class TREE, class TS, class BUD>
   cout << "-treeDist <dist>          Minimum distance between two trees (default = 0), works only with -generateLocations." << endl;  
   cout << "-numParts <parts>         Segments can be dumped to voxels by parts (i.e. they may belong to different voxels," << endl;
   cout << "-targetTree <num>         Any one of the trees can be identified as target tree (default = 0)" << endl;
-  cout << "-phprodfile <file>        File to store radiation calculations"  << endl;
-  cout << "-Voxbox <value>        Side length of voxel box - overrides the one given in VoxelSpace.txt"  << endl;
+  cout << "-resultfile <file>        File to store radiation calculations"  << endl;
+  cout << "-Voxboxside <value>     Side length of voxel box - default is 0.2 m"  << endl;
   cout << "-dumpSelf              If the subject tree is dumped to vox-space (default no)" << endl;
   cout << "-inputTree <filename>  Input tree for radiation calculations" << endl;
   cout << "-kBorderConifer <value>       Extinction coefficient for conifer foliage in border forest (default = 0.14)" << endl;
@@ -71,15 +70,15 @@ template<class TREE, class TS, class BUD>
   cout << "-correctSTAR           If the descrepancy with STATR from eq. and STAR (ca. STAR = -0.041 + 1.056*STAR_eq) is corr."
        << endl;
   cout << "-constantSTAR <value>  STAR has constant value <value> (may be corrected by -correctSTAR)."  << endl;
-  cout << "-appendMode            If production balance is written to -phprodfile in trunc-mode or app-mode." << endl;
+  cout << "-appendMode            If results are written to -resultfile in trunc-mode or app-mode." << endl;
   cout << "                       trunc mode is default, in app-mode information about voxels is written also." << endl;
   cout << "-self                  Calculates the radiation conditions only for -inputTree" << endl;
   cout << "-manyTrees <file>      Many shading trees, they are given in <file>. In this case -self has no effect" << endl; 
   cout << "-writeOnlyFile         Writes only positions & trees to runfile.dat and exits, requires -manyTrees" << endl;
   cout << "-getTreesPos <file>    Reads trees (xml files) and their positions from file" << endl;
   cout << "-radiusOnly <r>        Only trees at max distance r m are used in the calculation." << endl;
+  cout << "-X, -Y, -Z <value>     X, y, z sidelengths of VoxelSpace (defaults are 10 m, 10 m, 3 m)" << endl; 
   cout  << endl;
-
 }
 
 
@@ -87,17 +86,8 @@ template<class TREE, class TS, class BUD>
 void MainProgramAsClass<TREE,TS,BUD>::checkCommandLine(int argc, char** argv)const
 {
   //At least three  mandatory arguments required 
-  if (argc < 2){
-    cout << "Two mandatory arguments are required!" << endl << endl;
+  if (argc < 1){
     usage();
-    exit(0);
-  }
-/*   else if (CheckCommandLine(argc,argv,"-metafile") == false){ */
-/*     cout << "Mandatory -metafile <MetaFile.txt> option missing" << endl; */
-/*     exit(0); */
-/*   } */
-  else if (CheckCommandLine(argc,argv,"-voxelspace") == false){
-    cout << "Mandatory -voxelspace <VoxelSpace.txt> option missing" << endl;
     exit(0);
   }
   else if (verbose){
@@ -106,7 +96,7 @@ void MainProgramAsClass<TREE,TS,BUD>::checkCommandLine(int argc, char** argv)con
 }
 
 template<class TREE, class TS, class BUD>
-void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
+  void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
 {
   if (verbose){
     cout << "parseCommandLine begin" <<endl;
@@ -114,26 +104,36 @@ void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
 
   checkCommandLine(argc,argv);
 
-  //Mandatory arguments
   string clarg;
 
-  //Read here and set middle_stand (may be aread and set also in other
-  //places
+  //Read/set parameters of the voxelspace and the are trees are in
+  voxboxside = 0.2;     //default value = 0.2 m
   clarg.clear();
-  if (ParseCommandLine(argc,argv,"-voxelspace", clarg)){
-    voxelfile = clarg;
-    ifstream vf(voxelfile.c_str());
-    int vx,vy,vz; vx = vy = vz = 0;
-    LGMdouble s1,s2,s3,b1,b2; s1 = s2 = s3 = 0.0; b1=b2=0.0;
-    vf >> vx >> vy >> vz >> s1 >> s2 >> s3 >> b1 >> b2;
-    vf.close();
+  if (ParseCommandLine(argc,argv,"-Voxboxside", clarg))
+    voxboxside = atof(clarg.c_str());
 
-    //Tama valonlaskentaa varten ja maarittelee standin keskipisteen
-    middle_stand.first = vx/2.0;
-    middle_stand.second = vy/2.0;
-  }
+  clarg.clear();
+  //Side lengths of voxelspace, used sometimes (e.g. setTreeLocations())
+  //to define the ares the trees are in
+  //Default sixe of the voxelspace is 10 x 10 x 3 m3
+  vs_x = 10.0;     
+  if (ParseCommandLine(argc,argv,"-X", clarg))
+    vs_x = atof(clarg.c_str());
+ 
+  clarg.clear();
+  vs_y = 10.0;     
+  if (ParseCommandLine(argc,argv,"-Y", clarg))
+    vs_y = atof(clarg.c_str());
 
-  //End of mandatory arguments 
+  clarg.clear();
+  vs_z = 3.0;     
+  if (ParseCommandLine(argc,argv,"-Z", clarg))
+    vs_z = atof(clarg.c_str());
+
+  middle_stand.first = vs_x/2.0;
+  middle_stand.second = vs_y/2.0;
+  
+
 
   clarg.clear();
   if (ParseCommandLine(argc,argv,"-treeDist", clarg))
@@ -178,15 +178,10 @@ void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
   if (ParseCommandLine(argc,argv,"-treeDist", clarg))
     tree_distance = atof(clarg.c_str());
 
-   phprodfile = "phprod.dat";
+  resultfile = "result.dat";
   clarg.clear();
-  if (ParseCommandLine(argc,argv,"-phprodfile", clarg))
-      phprodfile = clarg;
-
-  voxboxside = -1.0;
-  clarg.clear();
-  if (ParseCommandLine(argc,argv,"-Voxbox", clarg))
-       voxboxside = atof(clarg.c_str());
+  if (ParseCommandLine(argc,argv,"-resultfile", clarg))
+    resultfile = clarg;
 
   dump_self = false;
   if (CheckCommandLine(argc,argv,"-dumpSelf"))
@@ -248,7 +243,7 @@ void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
 
   box_dir_effect = false;
   if (CheckCommandLine(argc,argv,"-boxDirEffect"))
-      box_dir_effect = true;
+    box_dir_effect = true;
 
   no_compartments = false;
   if (ParseCommandLine(argc,argv,"-noCompartments", comp_tree))
@@ -256,7 +251,7 @@ void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
 
   tree_info = false;
   if (CheckCommandLine(argc,argv,"-treeInfo"))
-      tree_info = true;
+    tree_info = true;
 
   clarg.clear();
   constant_star = -1.0;
@@ -296,7 +291,7 @@ void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
       }
     mtf.close();
 
-  }  //if(ParseCommand... )
+  }  
 
 
   write_only_file = false;
@@ -328,7 +323,7 @@ void MainProgramAsClass<TREE,TS,BUD>::parseCommandLine(int argc, char** argv)
     cout << "parseCommandLine end" <<endl;
 
   }   
-}
+}  //if(ParseCommand... )
 
 //================================================================================
 //Generate tree locations, or read them from a file
@@ -339,37 +334,29 @@ template<class TREE, class TS,class BUD>
   void MainProgramAsClass<TREE, TS,BUD>::setTreeLocations()
 {  
   if(generate_locations) {
-    //In this case the take the plot dimensions from voxelspace file: Read the voxel space file
-    ifstream vf(voxelfile.c_str());
-    int vx,vy,vz; vx = vy = vz = 0;
-    LGMdouble s1,s2,s3,b1,b2; s1 = s2 = s3 = 0.0; b1=b2=0.0;
-    vf >> vx >> vy >> vz >> s1 >> s2 >> s3 >> b1 >> b2;
-    
-    //Corners of the stand
+    //In this case plot dimensions are taken from voxelspace x and y side lengths
+
+    //Corners of the stand vs_x, vs_y has been set in ParseCommandLine()
     Point l(0.0, 0.0, 0.0);
-    Point r(vx, vy, 0.0);
+    Point r(vs_x, vs_y, 0.0);
     stand.setLlCorner(l);
     stand.setUrCorner(r);
     stand.evaluateArea();
     border_forest.setCornerL(l);
     border_forest.setCornerR(r);
 
-
-    //Defines the middle of the stand rectangle
-    middle_stand.first = vx/2.0;
-    middle_stand.second = vy/2.0;
-
     //ForestGap is here only for consistency with use of GenerateLocations in Lig-Crobas
+    //middle_stand has been set in ParseCommandLine() 
     ForestGap gap(pair<double,double>(middle_stand.first,middle_stand.second),gap_radius);
 
     //number of trees may decrease due to hard core
     int no_trees_0 = no_trees;
-    GenerateLocations(no_trees,0.0,0.0,vx,vy,tree_distance,gap,locations);
+    GenerateLocations(no_trees,0.0,0.0,vs_x,vs_y,tree_distance,gap,locations);
 
     if (verbose){
       cout << "Number of trees" << locations.size() <<endl 
-	   << " Density/ha wanted: " << (double)no_trees_0/(vx*vy/10000.0)
-           << " Density/ha created: " << (double)no_trees/(vx*vy/10000.0) <<endl;
+	   << " Density/ha wanted: " << (double)no_trees_0/(vs_x*vs_y/10000.0)
+           << " Density/ha created: " << (double)no_trees/(vs_x*vs_y/10000.0) <<endl;
       cout << " Minimum tree distance: " << tree_distance <<endl; 
     }
   } //  if(generate_  ...)
@@ -545,26 +532,11 @@ template<class TREE, class TS,class BUD>
 template<class TREE, class TS,class BUD>
   void MainProgramAsClass<TREE, TS,BUD>::initializeVoxelSpace()
 {
-  ifstream vf(voxelfile.c_str());
-  LGMdouble vx,vy,vz; vx = vy = vz = 0.0;
-  LGMdouble s1,s2,s3,b1,b2; s1 = s2 = s3 = 0.0; b1=b2=0.0;
-  vf >> vx >> vy >> vz >> s1 >> s2 >> s3 >> b1 >> b2;
-  vf.close();
-  //vx,vy,vz define the voxel space  dimensions, s1, s2, s3 define the
-  //voxel box dimensions
-  if (verbose){
-    cout << "Voxel Space: " << vx << " " << vy << " " << vz << " " 
-	 << s1 << " " << s2 << " " << s3 << " " << b1 << " " << b2 <<endl;
- 
-    //NOTE: this overrides VoxelSpace.txt
-    if(voxboxside > 0) {
-      s1 = s2 = s3  = voxboxside;
-    }
-  }
-  vs = new VoxelSpace(Point(0,0,0),Point(vx,vy,vz),
-		      s1,s2,s3,
-		      static_cast<int>(vx/s1)+1,static_cast<int>(vy/s2)+1,static_cast<int>(vz/s3)+1,
-		      GetFirmament(*vtree[0]));
+  // vs_x, vs_y, vs_z, voxboxside have been set in ParseCommandLine()
+  vs = new VoxelSpace(Point(0,0,0),Point(vs_x,vs_y,vs_z),
+		      voxboxside,voxboxside,voxboxside,
+		      static_cast<int>(vs_x/voxboxside)+1,static_cast<int>(vs_y/voxboxside)+1,
+		      static_cast<int>(vs_z/voxboxside)+1,GetFirmament(*vtree[0]));
 
    //Now the structure of the tree in voxel space is specified
 
@@ -1012,10 +984,10 @@ template<class TREE, class TS,class BUD>
      //Tassa tulostetaan vtree vektorin 1. puun tiedot. Se on target puu
 
   if(one_time) {
-   SegmentProductionBalance spb(phprodfile);
-    spb.setQmax(GetFirmament(*t).diffuseBallSensor());
+   ResultsToFile rtf(resultfile);
+    rtf.setQmax(GetFirmament(*t).diffuseBallSensor());
 
-     ForEach(*t, spb);
+     ForEach(*t, rtf);
   }
   else {
     //int bs;                 // box STAR  0 = constant value,
@@ -1024,7 +996,7 @@ template<class TREE, class TS,class BUD>
     //int corr;               // If STAR_eq -> STAR correction considered (0 = no, 1 = yes)
     //LGMdouble vox;          // Size of voxel (=length of side, assuming voxels are cubes)
 
-    SegmentProductionBalanceInfo info;
+    ResultsToFileInfo info;
     if(correct_star)
       info.corr = 1;
     else
@@ -1045,10 +1017,10 @@ template<class TREE, class TS,class BUD>
     info.location_file = location_file;
     info.tree_file = input_tree_file;
 
-    SegmentProductionBalance spb(phprodfile, info);
-    spb.setQmax(GetFirmament(*t).diffuseBallSensor());
+    ResultsToFile rtf(resultfile, info);
+    rtf.setQmax(GetFirmament(*t).diffuseBallSensor());
 
-    ForEach(*t, spb);
+    ForEach(*t, rtf);
   }
  
      exit(0);
@@ -1095,25 +1067,11 @@ template<class TREE, class TS,class BUD>
   }
   else {
     TREE* t = vtree[0];
-    ifstream vf(voxelfile.c_str());
-    LGMdouble vx,vy,vz; vx = vy = vz = 0.0;
-    LGMdouble s1,s2,s3,b1,b2; s1 = s2 = s3 = 0.0; b1=b2=0.0;
-    vf >> vx >> vy >> vz >> s1 >> s2 >> s3 >> b1 >> b2;
-    vf.close();
-    //vx,vy,vz define the voxel space  dimensions, s1, s2, s3 define the
-    //voxel box dimensions
-    if (verbose){
-      cout << "Voxel Space: " << vx << " " << vy << " " << vz << " " 
-	   << s1 << " " << s2 << " " << s3 << " " << b1 << " " << b2 <<endl;
- 
-      //NOTE: this overrides VoxelSpace.txt
-      if(voxboxside > 0) {
-	s1 = s2 = s3  = voxboxside;
-      }
-    }
-    vs = new VoxelSpace(Point(0,0,0),Point(vx,vy,vz),
-			s1,s2,s3,
-			static_cast<int>(vx/s1),static_cast<int>(vy/s2),static_cast<int>(vz/s3),
+
+  // vs_x, vs_y, vs_z, voxboxside have been set in ParseCommandLine()
+    vs = new VoxelSpace(Point(0,0,0),Point(vs_x,vs_y,vs_z),
+			voxboxside,voxboxside,voxboxside,
+			static_cast<int>(vs_x/voxboxside),static_cast<int>(vs_y/voxboxside),static_cast<int>(vs_z/voxboxside),
 			GetFirmament(*vtree[0]));
 
     BoundingBox bb;
@@ -1140,7 +1098,7 @@ template<class TREE, class TS,class BUD>
   // 4) Output
 
   if(one_time) {
-    ForEach(*t, SegmentProductionBalance(phprodfile));
+    ForEach(*t, ResultsToFile(resultfile));
   }
   else {
     //int bs;                 // box STAR  0 = constant value,
@@ -1149,7 +1107,7 @@ template<class TREE, class TS,class BUD>
     //int corr;               // If STAR_eq -> STAR correction considered (0 = no, 1 = yes)
     //LGMdouble vox;          // Size of voxel (=length of side, assuming voxels are cubes)
 
-    SegmentProductionBalanceInfo info;
+    ResultsToFileInfo info;
     if(correct_star)
       info.corr = 1;
     else
@@ -1170,9 +1128,9 @@ template<class TREE, class TS,class BUD>
     info.location_file = location_file;
     info.tree_file = input_tree_file;
     
-    SegmentProductionBalance spb(phprodfile, info);
-    spb.setQmax(GetFirmament(*t).diffuseBallSensor());
-    ForEach(*t, spb);
+    ResultsToFile rtf(resultfile, info);
+    rtf.setQmax(GetFirmament(*t).diffuseBallSensor());
+    ForEach(*t, rtf);
   }
  
 }

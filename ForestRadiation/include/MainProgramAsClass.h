@@ -15,7 +15,6 @@
 #include <VoxelSpace.h>
 #include <XMLTree.h>
 #include <StandDescriptor.h>
-#include <VoxelSpace.h>
 #include <BorderForest.h>
 #include <star_mean.h>
 
@@ -72,7 +71,6 @@ template <class TREE, class TS, class BUD>
 
     double treeAf; //Foliage area of the tree
     DCLData dcl;//Diameter and heigth at the crown base.
-    string voxelfile;
     string xmlfile; //XML file where the tree can be saved and restored from
     bool writevoxels;
     ParametricCurve K;//The 'K' function 
@@ -81,7 +79,7 @@ template <class TREE, class TS, class BUD>
     bool noWoodVoxel;
     bool wood_voxel;
     bool dir_star; // variable to determine whether to activate the calculations of the directional STAR calculations or not.
-    string phprodfile;
+    string resultfile;
     LGMdouble voxboxside;
     bool dump_self;
     string input_tree_file;
@@ -102,7 +100,7 @@ template <class TREE, class TS, class BUD>
     bool tree_info;
     LGMdouble constant_star; //If this > 0, k = constant_star else k = star_mean
     bool correct_star;       //If star_eq -> star correction is done
-    bool one_time;        //If production balance is written to -phprodfile in trunc-mode or app-mode
+    bool one_time;        //If production balance is written to -resultfile in trunc-mode or app-mode
     bool only_self;       //If radiation is analyzed only for -inputTree
     bool many_trees;      //If many shading trees
     string many_tree_file;
@@ -113,7 +111,7 @@ template <class TREE, class TS, class BUD>
     bool radius_only;
     LGMdouble max_radius;
     bool calculateDirectionalStar; //To calculate directional STAR values
-
+    LGMdouble vs_x, vs_y, vs_z;    //Dimensions of the voxelspace
 };
 
 

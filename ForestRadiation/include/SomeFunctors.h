@@ -409,7 +409,7 @@ public:
   }
 };
 
-class SegmentProductionBalanceInfo{
+class ResultsToFileInfo{
  public:
   int bs;                 // box STAR  0 = constant value,
                           //           1 = value of box
@@ -420,16 +420,16 @@ class SegmentProductionBalanceInfo{
   string tree_file;
 };
 
-class SegmentProductionBalance {
+class ResultsToFile {
  public:
- SegmentProductionBalance(const string& filename): fname(filename), qmax(1.0)
+ ResultsToFile(const string& filename): fname(filename), qmax(1.0)
   {
     one_time = true;
     ofstream f(fname.c_str() , ofstream::trunc);
     f << "Height Dist_top Dist_stem Qin Qmax" << endl;
     f.close();
   }
- SegmentProductionBalance(const string& filename,  SegmentProductionBalanceInfo in_fo): 
+ ResultsToFile(const string& filename,  ResultsToFileInfo in_fo): 
   fname(filename), info(in_fo)
   {
     one_time = false;
@@ -471,7 +471,7 @@ class SegmentProductionBalance {
  private:
   string fname;
   bool one_time;
-  SegmentProductionBalanceInfo info;
+  ResultsToFileInfo info;
   LGMdouble qmax;
 };
 
