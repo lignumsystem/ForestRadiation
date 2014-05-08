@@ -154,15 +154,16 @@ class AccumulateOpticalDepth{
 public:
     AccumulateOpticalDepth(LGMdouble side, LGMdouble a, LGMdouble b, Point loc, ParametricCurve kk,
                            bool d_e, bool wd, bool cs, LGMdouble st,bool calculateDirectionalStar) :
-        box_side_length(side), par_a(a), par_b(b), seg_loc(loc), K(kk), dir_effect(d_e), wood(wd), calculateDirectionalStar(calculateDirectionalStar),
-        constant_star(st),correct_star(cs) {box_volume = pow(box_side_length,3.0);}
+        box_side_length(side), par_a(a), par_b(b), seg_loc(loc), K(kk), dir_effect(d_e), wood(wd), 
+	  constant_star(st),correct_star(cs), calculateDirectionalStar(calculateDirectionalStar)
+	  {box_volume = pow(box_side_length,3.0);}
     double operator()(double o_d,VoxelMovement& vm){
         //    if((vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) && vm.n_segs_real > 0.0) {
 
 
         if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) {
             LGMdouble k;
-            //********************************************Additional Code for the vectors of directional Star Values***************************************************
+            //**********Additional Code for the vectors of directional Star Values***************************************************
             vector<LGMdouble>  kdir(7);
             vector<LGMdouble>  angle(7);
             int count = 0;
@@ -185,7 +186,7 @@ public:
             if(correct_star) {
                 k = max(0.0,-0.014+1.056*k);
             }
-           //*************************************************************************************************************************************************************
+           //****************************************************************************************************************
             //NOTE: here transformation STAR_eq --> STAR; documented in
             //~/Riston-D/E/LIGNUM/Light/summer-09-test/STAR-vs-STAR_eq.pdf
 
