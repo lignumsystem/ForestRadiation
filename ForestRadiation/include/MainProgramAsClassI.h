@@ -532,6 +532,7 @@ template<class TREE, class TS,class BUD>
 template<class TREE, class TS,class BUD>
   void MainProgramAsClass<TREE, TS,BUD>::initializeVoxelSpace()
 {
+
   // vs_x, vs_y, vs_z, voxboxside have been set in ParseCommandLine()
   vs = new VoxelSpace(Point(0,0,0),Point(vs_x,vs_y,vs_z),
 		      voxboxside,voxboxside,voxboxside,
@@ -542,6 +543,7 @@ template<class TREE, class TS,class BUD>
 
   if(voxel_tree) {
 
+
     cout << "Radiation calculations now with voxel tree in voxel space accordig to VoxelSpace.txt" << endl;
 
     TREE* t = vtree[0];       //Note absolutely only one tree in case of voxel_tree
@@ -551,6 +553,7 @@ template<class TREE, class TS,class BUD>
     int nx = vs->Xn;
     int ny = vs->Yn;
     int nz = vs->Zn;
+
     LGMdouble deltaZ = vs->getZSideLength();
  
     double fol_den = 150.0;
@@ -579,28 +582,18 @@ template<class TREE, class TS,class BUD>
       for(int j = 0; j < ny; j++)
 	for(int k = 0; k < nz; k++) {
 	  Point p = vs->voxboxes[i][j][k].getCenterPoint();
-	  if(sqrt(pow(p.getX()-ms.getX(),2.0)+pow(p.getY()-ms.getY(),2.0)) > target_tree_rad) {
-	    Point loc = p - Point(0.0,0.0,deltaZ/2.0);
+	  Point loc = p - Point(0.0,0.0,deltaZ/2.0);
+	  ts = new TS(loc, up, 1.0, L, Rw, Rh, t);
+	  SetValue(*ts,LGAR,Rw);
+	  SetValue(*ts,LGARh,Rh);
+	  SetValue(*ts,LGAL,L);
+	  SetValue(*ts,LGAsf,sf);
+	  SetValue(*ts,LGAWf,Wf);
+	  SetValue(*ts,LGARf,Rf);
 	    
-	    //	    Point p1 = p - ms;
-	    
-	    //	    double ker = (0.5/sqrt(2.0))/sqrt(pow(p1.getX(),2.0)+pow(p1.getY(),2.0));
-	    //	    PositionVector suunta(ker*p1.getX(),ker*p1.getY(),sqrt(1.0-0.25));
-
-	    ts = new TS(loc, up, 1.0, L, Rw, Rh, t);
-	    //	    ts = new TS(loc, suunta, 1.0, L, Rw, Rh, t);
-
-	    SetValue(*ts,LGAR,Rw);
-	    SetValue(*ts,LGARh,Rh);
-	    SetValue(*ts,LGAL,L);
-	    SetValue(*ts,LGAsf,sf);
-	    SetValue(*ts,LGAWf,Wf);
-	    SetValue(*ts,LGARf,Rf);
-	    
-	    bp = new BranchingPoint<ScotsPineSegment,ScotsPineBud>(loc,up,1.0,t);
-	    InsertTreeCompartmentSecondLast(axis, ts);
-	    InsertTreeCompartmentSecondLast(axis, bp);
-	  }
+	  bp = new BranchingPoint<ScotsPineSegment,ScotsPineBud>(loc,up,1.0,t);
+	  InsertTreeCompartmentSecondLast(axis, ts);
+	  InsertTreeCompartmentSecondLast(axis, bp);
 	}
 
     //Write the voxeltree to a file
@@ -609,14 +602,11 @@ template<class TREE, class TS,class BUD>
 
     //and information about voxelspace 
     //    DumpCfTree(*vs, *t, num_parts, wood_voxel);
+
     DumpCfTree(*vs, *t, num_parts, true);
     //After dumping all trees to VoxelSpace it is necessary to evaluate
     //sum quantities (e.g. STAR_mean)
     vs->updateBoxValues();
-
-
-    cout << "Xn Yn Zn " << nx << " " << ny << " " << nz << endl;
-    vs->writeVoxelSpaceContents();
 
     LGMdouble fa = 0.0;
     fa = Accumulate(*t,fa,CollectFoliageArea<TS,BUD>());
