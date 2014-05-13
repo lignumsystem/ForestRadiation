@@ -52,6 +52,7 @@ template <class TREE, class TS, class BUD>
     void calculateRadiation();
     void calculateRadiationOnlySelf();
     void getTreesAndPositions();
+    void createTargetTree();
     StandDescriptor<TREE>& getStand() {return stand;}
     bool getOnlySelf() {return only_self;}
     bool getWriteOnlyFile() {return write_only_file;}
