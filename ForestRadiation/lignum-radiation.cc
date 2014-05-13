@@ -55,5 +55,8 @@ int main(int argc, char** argv)
   main_program.initializeVoxelSpace();
 
   main_program.setVoxelSpaceAndBorderForest();
+  // main_program.createTargetTree();
   main_program.calculateRadiation();
+
+  exit(0);
 }
