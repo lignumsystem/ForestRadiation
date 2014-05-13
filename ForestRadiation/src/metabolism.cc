@@ -8,7 +8,7 @@ void ScotsPineSegment::photosynthesis()
   Tree<ScotsPineSegment,ScotsPineBud>& t = GetTree(*this);
   //  SetValue(*this,LGAP, GetValue(t, LGPpr) * GetValue(*this,LGAQabs));
 
-  const ParametricCurve& fip = GetFunction(GetTree(*this),LGMIP);
+  //const ParametricCurve& fip = GetFunction(GetTree(*this),LGMIP);
   //  double f_ip = fip(GetValue(*this,LGAQin)/GetValue(t,TreeQinMax));
   double ip = GetValue(*this,LGAQin)/GetValue(t,TreeQinMax);
   double pr = GetValue(t, LGPpr);
