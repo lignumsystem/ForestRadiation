@@ -128,7 +128,7 @@ public:
                                         bool d_e, bool wd, bool cs, LGMdouble st,bool calculateDirectionalStar):
         K(k),voxel_space(vs), border_forest(bf), evaluate_border(border),
         par_a(a), par_b(b), dump_self(sd), k_border_conifer(kbc), dir_effect(d_e),
-        wood(wd), correct_star(cs), constant_star(st),calculateDirectionalStar(calculateDirectionalStar) {}
+        wood(wd), constant_star(st),correct_star(cs),calculateDirectionalStar(calculateDirectionalStar) {}
 
     TreeCompartment<TS,BUD>* operator()(TreeCompartment<TS,BUD>* tc)const;
 
