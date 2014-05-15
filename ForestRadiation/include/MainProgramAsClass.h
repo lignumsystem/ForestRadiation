@@ -77,7 +77,6 @@ template <class TREE, class TS, class BUD>
     ParametricCurve K;//The 'K' function 
     bool generate_locations;
     int no_trees;
-    bool noWoodVoxel;
     bool wood_voxel;
     bool dir_star; // variable to determine whether to activate the calculations of the directional STAR calculations or not.
     string resultfile;

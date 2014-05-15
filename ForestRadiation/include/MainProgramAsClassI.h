@@ -30,19 +30,19 @@ template<class TREE, class TS, class BUD>
   void MainProgramAsClass<TREE,TS,BUD>::usage()const
 {
   cout << "Usage:  ./lig-forest [-numParts <parts>]  [-treeDist <dist>] [-hw <hw_start>] [-viz]" <<endl;
-  cout << "[-xml <filename>] [-writeVoxels]" <<endl;
-  cout << "[-treeFile <filename>] [-generateLocations  <num>] [-woodVoxel] [-treeLocations <file>]" << endl;
+  cout << "[-xml <filename>] [-writeVoxels] [-noWoodVoxel]" <<endl;
+  cout << "[-treeFile <filename>] [-generateLocations  <num>] [-treeLocations <file>]" << endl;
   cout << "[-resultfile <file>] [-Voxboxside <value>]" << endl;
   cout << "[-dumpSelf] [-inputTree <filename>] [-kBorderConifer <value>] [-GapRadius <value>]" << endl;
   cout << "[-targetTreeRad <value>] [-evaluateLAI] [-radMethod <num>] [-calculateSTAR <num>] [-calculateDirectionalStar] " << endl;
   cout << "[-voxelTree] [-boxDirEffect] [-treeInfo] [-segmentInfo <file>]" << endl;
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
-  cout << "[-X <value>] [-Y <value>] [-Z <value>]" << endl;
+  cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI]" << endl;
   cout << "-generateLocations <num>  In this case <num> trees will be generated to random locations. If this" << endl;
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
-  cout << "-woodVoxel                If woody parts are dumped to voxels (default = true)" << endl;
+  cout << "-noWoodVoxel            Woody parts are NOT dumped to voxels (default is are dumped)" << endl;
   cout << "-calculateDirectionalStar If directional star needs to be calculated then use true (default = false)  "<<endl;
   cout << "-treeDist <dist>          Minimum distance between two trees (default = 0), works only with -generateLocations." << endl;  
   cout << "-numParts <parts>         Segments can be dumped to voxels by parts (i.e. they may belong to different voxels," << endl;
@@ -59,8 +59,10 @@ template<class TREE, class TS, class BUD>
           "                       program stops. <num> specifies no. runs in Monte Carlo evaluation of STAR for each"
           "                       shoot. Results are written in file STAR.dat. Note that if <num> is large,"
           "                       the program runs a long time."   << endl; 
-  cout << "-voxelTree             In this case a tree is made which has one segment in each voxel (exept in the volume of the"
-          "                       target tree). NOTE Treelocations file or -generate MUST be such that there is only one tree."
+  cout << "-voxelTree             In this case a tree is made which has one segment in each voxel."
+          "                       NOTE Treelocations file or -generate MUST be such that there is only one tree."
+          "                       Side length of voxelbox _MUST_ be > 0.15 (length of segments in voxels), otherwise program"
+          "                       will crash."
        << endl;
   cout << "-PrintBoxCfData <file> Writes voxelboxcontents to file with VoxelSpace.PrintBoxCfData(). Then stops"
        << endl;
@@ -452,8 +454,9 @@ template<class TREE, class TS,class BUD>
 	reader.readXMLToTree(*t, input_tree_file);
       }
       else {
-	LGMdouble no_many_trees = (LGMdouble)tree_files.size();
-	unsigned int tree = (unsigned int)((int)(ran3(&ran3_seed) * no_many_trees));
+	int no_many_trees = (int)tree_files.size();
+	unsigned int tree = (unsigned int)(i%no_many_trees);   //all trees are used in the same proportion
+
 	reader.readXMLToTree(*t, tree_files[tree]);
 	//In the case of many trees & generated (random) positions
 	//store positions & trees in the positions to be able to
@@ -501,7 +504,7 @@ template<class TREE, class TS,class BUD>
 
 
 	cout << " Tree H (m) Dbh (cm), Dbase (cm) Hcrown_base (m) Dcrown_base (cm)  Wf (kg dm)  Af (m2) Wf_Repola"
-	     " Wf_Repolab"  << endl;
+	  " Wf_Repolab"  << endl;
 	cout <<  input_tree_file << " "
 	     << h << " " << 100.0*dbh << " " << 100.0*d_base << " " << h_cb << " "
 	     << 100.0*d_cb << " " << 2.0*Wf << " " << treeAf << " " << Wf_Repola
@@ -517,18 +520,23 @@ template<class TREE, class TS,class BUD>
       MoveTree<TS,BUD> move(Point(p.first,p.second,0.0)-GetPoint(*t),*t);
       ForEach(*t, move);
 
-    } //  if(!voxel_tree) ...
-
-
     if (verbose){
       cout << "Created a tree at: " << p.first << " " << p.second <<endl;
     }
-    vtree.push_back(t);
+
+    } //  if(!voxel_tree) ...
+
+    vtree.push_back(t);   //this must here (also for voxel_tree) since in the case of voxel_tree the first
+                          //tree in vtree is reshaped as voxeltree in initializeVoxelSpace()
   } //for(int i = ...
 }    //::createTrees(
 
 
 //====================================================================================
+//
+// initializeVoxelSpace() just creates the voxelspace vs and in the case of voxel_tree reshapes *vtree[0] as
+// voxeltree according to the vs
+
 template<class TREE, class TS,class BUD>
   void MainProgramAsClass<TREE, TS,BUD>::initializeVoxelSpace()
 {
@@ -539,12 +547,8 @@ template<class TREE, class TS,class BUD>
 		      static_cast<int>(vs_x/voxboxside)+1,static_cast<int>(vs_y/voxboxside)+1,
 		      static_cast<int>(vs_z/voxboxside)+1,GetFirmament(*vtree[0]));
 
-   //Now the structure of the tree in voxel space is specified
-
-  if(voxel_tree) {
-
-
-    cout << "Radiation calculations now with voxel tree in voxel space accordig to VoxelSpace.txt" << endl;
+  if(voxel_tree) { //Now the structure of the tree in voxel space can be specified
+    cout << endl << "Radiation calculations now with voxel tree in voxel space" << endl;
 
     TREE* t = vtree[0];       //Note absolutely only one tree in case of voxel_tree
     Axis<TS,BUD>& axis = GetAxis(*t);
@@ -582,7 +586,7 @@ template<class TREE, class TS,class BUD>
       for(int j = 0; j < ny; j++)
 	for(int k = 0; k < nz; k++) {
 	  Point p = vs->voxboxes[i][j][k].getCenterPoint();
-	  Point loc = p - Point(0.0,0.0,deltaZ/2.0);
+	  Point loc = p - Point(0.0,0.0,deltaZ/2.0-0.0001); //a bit (0.0001) above the bottom
 	  ts = new TS(loc, up, 1.0, L, Rw, Rh, t);
 	  SetValue(*ts,LGAR,Rw);
 	  SetValue(*ts,LGARh,Rh);
@@ -600,10 +604,8 @@ template<class TREE, class TS,class BUD>
     XMLDomTreeWriter<TS,BUD> writer;
     writer.writeTreeToXML(*t,"voxel-tree.xml");
 
-    //and information about voxelspace 
-    //    DumpCfTree(*vs, *t, num_parts, wood_voxel);
-
-    DumpCfTree(*vs, *t, num_parts, true);
+    //Dump voxeltree here into voxelspac and NOT in setVoxelSpaceAndBorderForest()
+    DumpCfTree(*vs, *t, num_parts, wood_voxel);
     //After dumping all trees to VoxelSpace it is necessary to evaluate
     //sum quantities (e.g. STAR_mean)
     vs->updateBoxValues();
@@ -658,8 +660,7 @@ template<class TREE, class TS,class BUD>
   cout << endl << "no_trees " << no_trees << endl;
 
   BoundingBox bb;
-  //  FindCfBoundingBox<TS,BUD> fb(!wood_voxel);
-  FindCfBoundingBox<TS,BUD> fb(false);
+  FindCfBoundingBox<TS,BUD> fb;      //Bounding box including the segments that have no foliage
 
   for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
     bb = Accumulate(*vtree[k], bb, fb);
@@ -667,94 +668,92 @@ template<class TREE, class TS,class BUD>
 
   Point ll = bb.getMin();
   Point ur = bb.getMax();
+  cout << ll;
+  cout << ur;
 
-  if(!voxel_tree) {                        //tehty jo voxel treelle
+  if(!voxel_tree) {   //In the case of voxeltree it is dumped already in initializeVoxelSpace()
     vs->resize(ll, ur);
 
-    //Note: not first tree, since it will be the first to be calculated
-    //and its foliage won't be in the voxelspace 
-    // unless dump_self is set
-
-    vs->reset();
+    vs->reset();          //this resets all data in voxelboxes before dumping
 
     for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
-      //      DumpCfTree(*vs, *vtree[k], num_parts, wood_voxel);
       DumpCfTree(*vs, *vtree[k], num_parts, true);
     }
+    vs->updateBoxValues(); 
 
-    //After dumping all trees to VoxelSpace it is necessary to evaluate
-    //sum quantities (e.g. STAR_mean)
-    vs->updateBoxValues();
- 
-    cout << endl << "getArea() " << vs->getArea() 
-	 << " getLowerLeftCorner() " << vs->getLowerLeftCorner();
-    cout << " getUpperRightCorner() " << vs->getUpperRightCorner();
-    cout << " getNumberOfBoxes() " << vs->getNumberOfBoxes() << " getNumberOfFilledBoxes() "
-	 << vs->getNumberOfFilledBoxes() << " getNumberOfTreeSegments() "
-	 << vs->getNumberOfTreeSegments() << endl;
-    cout << " getBoxVolume() " << vs->getBoxVolume() << " getXSideLength() " << vs->getXSideLength() << endl;
-    cout << " getYSideLength() " << vs->getYSideLength() << " getZSideLength() " << vs->getZSideLength() << endl;
-    cout << " getNoBoxX() " << vs->getNoBoxX() << " getNoBoxY() " << vs->getNoBoxY()
-	 << " getNoBoxZ() " << vs->getNoBoxX() << endl;
-    cout << " getNeedleArea() " << vs->getNeedleArea() << " getLeafArea() " <<  vs->getLeafArea() << endl;
-    cout << endl;
-  }
+  }  // end of if(!voxel_tree) ...
 
+  //Now the shading tree information is in the voxelspace
+  //write out information about it
+  cout << endl << "Information about voxelspace and dumped shading trees: " << endl;
+  cout << "getArea() " << vs->getArea() 
+       << " getLowerLeftCorner() " << vs->getLowerLeftCorner();
+  cout << "getUpperRightCorner() " << vs->getUpperRightCorner();
+  cout << "getNumberOfBoxes() " << vs->getNumberOfBoxes() << " getNumberOfFilledBoxes() "
+       << vs->getNumberOfFilledBoxes() << " getNumberOfTreeSegments() "
+       << vs->getNumberOfTreeSegments() << endl;
+  cout << "getBoxVolume() " << vs->getBoxVolume() << " getXSideLength() " << vs->getXSideLength() << endl;
+  cout << "getYSideLength() " << vs->getYSideLength() << " getZSideLength() " << vs->getZSideLength() << endl;
+  cout << "getNoBoxX() " << vs->getNoBoxX() << " getNoBoxY() " << vs->getNoBoxY()
+       << " getNoBoxZ() " << vs->getNoBoxZ() << endl;
+  cout << "getNeedleArea() " << vs->getNeedleArea() << " getLeafArea() " <<  vs->getLeafArea() << endl;
+  cout << endl;
 
-  //Lasketaan LAI VoxelSpacen avulla
-  //Tehdaan oma VoxelSpace sita varten
-  //Target puu (alla: calculateRadiation()) tehdaan niin, etta segmentit ovat
-  //tasoilla Hcb, ..., H, yhteensa 10 kpl. Kun tehdaan voxelboxeja 9 kpl
-  //valilla [Hcb,H] niin vastaa target puun jakoa: 1. voxelboxtaso  varjostaa 2. anturia,
-  //9. taso anturia 10.
-  //Dumpataan kaikki puut voxelspaceen: target puu asetetaan sinne vasta myohemmin
-  //(calculateRadiation()).
-  //Ei ole niin valia, kuinka monta boxia x ja y suunnassa on (voisi olla 1).
-  
-  cout << "ll " << ll;
-  cout << "ur " << ur;
-  VoxelSpace lai_vs(ll, ur, 10, 10, 9, GetFirmament(*vtree[0]));
-  for (unsigned int k = 0; k < (unsigned int)no_trees; k++)
-    //    DumpCfTree(lai_vs, *vtree[k], num_parts, wood_voxel);
-    DumpCfTree(lai_vs, *vtree[k], num_parts, true);
+  if(evaluate_LAI) {
+    //Lasketaan LAI VoxelSpacen avulla
+    //Tehdaan oma VoxelSpace sita varten
+    //Target puu (alla: calculateRadiation()) tehdaan niin, etta segmentit ovat
+    //tasoilla Hcb, ..., H, yhteensa 10 kpl. Kun tehdaan voxelboxeja 9 kpl
+    //valilla [Hcb,H] niin vastaa target puun jakoa: 1. voxelboxtaso  varjostaa 2. anturia,
+    //9. taso anturia 10.
+    //Dumpataan kaikki puut voxelspaceen: target puu asetetaan sinne vasta myohemmin
+    //(calculateRadiation()).
+    //Ei ole niin valia, kuinka monta boxia x ja y suunnassa on (voisi olla 1).
 
-  vector<pair<LGMdouble,LGMdouble> > lai_h;
-  LGMdouble Hmin, Hmax;
-  int n_levels;
-  lai_vs.evaluateVerticalNeedleAreaDensity(Hmax, Hmin, n_levels, lai_h);
+    Point lai_ll = vs->getLowerLeftCorner();
+    Point lai_ur = vs->getUpperRightCorner();
 
-  cout << "Needle area in space: " << lai_vs.getFoliageArea() << endl << endl;
-    
-  cout << "Hmin " << Hmin << "  Hmax " << Hmax << endl;
-  cout << "left corner (" << ll.getX() << " , " << ll.getY() << " )     right corner  ( " 
-       << ur.getX() << " , " << ur.getY() << " )" << endl;   
-  cout << "Box_center    lai cum_lai" << endl;
-  LGMdouble cum_lai = 0.0;
-  for(int i = 0; i < n_levels; i++) {
-    cum_lai += lai_h[i].second;
-    cout << lai_h[i].first << " " << lai_h[i].second << " " << cum_lai << endl;
-  }
-  cout << "This for LAI voxel space" << endl << endl;
-    cout << endl << "getArea() " << lai_vs.getArea() 
-	 << " getLowerLeftCorner() " << lai_vs.getLowerLeftCorner();
-    cout << " getUpperRightCorner() " << lai_vs.getUpperRightCorner();
+    VoxelSpace lai_vs(lai_ll, lai_ur, 10, 10, 9, GetFirmament(*vtree[0]));
+    for (unsigned int k = 0; k < (unsigned int)no_trees; k++)
+      DumpCfTree(lai_vs, *vtree[k], num_parts, true);
+
+    vector<pair<LGMdouble,LGMdouble> > lai_h;
+    LGMdouble Hmin, Hmax;
+    int n_levels;
+    lai_vs.evaluateVerticalNeedleAreaDensity(Hmax, Hmin, n_levels, lai_h);
+    cout << endl << "This is output about LAI etc calculated in a LAI voxelspace: " << endl;
+    cout << "Needle area in space: " << lai_vs.getFoliageArea() << endl;
+    cout << "Hmin " << Hmin << "  Hmax " << Hmax << endl;
+    cout << "left corner (" << lai_ll.getX() << " , " << lai_ll.getY() << " )     right corner  ( " 
+	 << lai_ur.getX() << " , " << lai_ur.getY() << " )" << endl;   
+    cout << "Box_center    lai cum_lai" << endl;
+    LGMdouble cum_lai = 0.0;
+    for(int i = 0; i < n_levels; i++) {
+      cum_lai += lai_h[i].second;
+      cout << lai_h[i].first << " " << lai_h[i].second << " " << cum_lai << endl;
+    }
+    cout << "LAI according to voxelspace: " << lai_vs.getFoliageArea()/ ((lai_ur.getX()-lai_ll.getX())*
+									 (lai_ur.getY()-lai_ll.getY())) << endl;
+
+    cout << endl << "This voxel space for LAI:" << endl << endl;
+    cout << "getArea() " << lai_vs.getArea() 
+	 << "getLowerLeftCorner() " << lai_vs.getLowerLeftCorner();
+    cout << "getUpperRightCorner() " << lai_vs.getUpperRightCorner();
     cout << " getNumberOfBoxes() " << lai_vs.getNumberOfBoxes() << " getNumberOfFilledBoxes() "
 	 << lai_vs.getNumberOfFilledBoxes() << " getNumberOfTreeSegments() "
 	 << lai_vs.getNumberOfTreeSegments() << endl;
     cout << " getBoxVolume() " << lai_vs.getBoxVolume() << " getXSideLength() "
 	 << lai_vs.getXSideLength() << endl;
-    cout << " getYSideLength() " << lai_vs.getYSideLength() << " getZSideLength() "
+    cout << "getYSideLength() " << lai_vs.getYSideLength() << " getZSideLength() "
 	 << lai_vs.getZSideLength() << endl;
-    cout << " getNoBoxX() " << lai_vs.getNoBoxX() << " getNoBoxY() " << lai_vs.getNoBoxY()
-	 << " getNoBoxZ() " << lai_vs.getNoBoxX() << endl;
-    cout << " getNeedleArea() " << lai_vs.getNeedleArea() << " getLeafArea() "
+    cout << "getNoBoxX() " << lai_vs.getNoBoxX() << " getNoBoxY() " << lai_vs.getNoBoxY()
+	 << "getNoBoxZ() " << lai_vs.getNoBoxX() << endl;
+    cout << "getNeedleArea() " << lai_vs.getNeedleArea() << " getLeafArea() "
 	 <<  lai_vs.getLeafArea() << endl;
     cout << endl;
 
-
-  if(evaluate_LAI) {
     exit(0);
-  }
+  } // end of if(evaluate_LAI) ..
 
   //The border forest top is set according to voxelspace
   // (i.e. bounding box)
@@ -774,11 +773,7 @@ template<class TREE, class TS,class BUD>
 
 
 //===================================================================
-// calculateRadiation UnDumps a tree (except the first tree, since
-// it was not dumped in setVoxelspace()) and calculates radiation
-// 1) by pairwise for itself and 2) through voxelspace and
-// 3) borderforest outside itself
-// and then dumps it back to voxelspace
+// calculateRadiation 
 //===================================================================
 template<class TREE, class TS,class BUD>
   void MainProgramAsClass<TREE, TS,BUD>::calculateRadiation()
@@ -786,7 +781,6 @@ template<class TREE, class TS,class BUD>
 
   //Find max height (Hmax) and minimum height of crown base (Hcbmin)
   //and construct then the target tree
-     // cout<<"this is inside calculateRadiation";
 
   BoundingBox bb;
   //  FindCfBoundingBox<TS,BUD> fb(true);
@@ -799,8 +793,9 @@ template<class TREE, class TS,class BUD>
   cout << "ur " << bb.getMax();
   cout << "ll " << bb.getMin();
 
-  LGMdouble Hmax = bb.getMax().getZ();
-  LGMdouble Hcb = bb.getMin().getZ();
+
+  LGMdouble Hmax = bb.getMax().getZ()  - 0.001;  //Stay 0.001 inside voxelspace
+  LGMdouble Hcb = bb.getMin().getZ()   + 0.001;
 
   vector<double> heights(10);
   vector<double> fii(13);
@@ -824,12 +819,7 @@ template<class TREE, class TS,class BUD>
 		       "fsapwdown.fun","faf.fun","fna.fun", "fwd.fun",
 		       "flr.fun");   //target_tree
 
-  GetFirmament(*t_t).resize(15,15,1200.0);
-  SetValue(*t_t,TreeQinMax,GetFirmament(*t_t).diffuseBallSensor());
-
- for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
-   GetFirmament(*vtree[k]).resize(15,15,1200.0);
- }
+  //GetFirmament(*t_t).resize(15,15,1200.0);
 
   Axis<ScotsPineSegment,ScotsPineBud>& t_t_a = GetAxis(*t_t);
     
@@ -868,8 +858,10 @@ template<class TREE, class TS,class BUD>
   vtree.insert(vtree.begin(),t_t);
   no_trees++;
 
-  cout << "H Hcb " << Hmax << " " << Hcb << endl;
   cout << endl << "Target tree at " << mp;
+  cout << "Between heights " << Hmax << " and " << Hcb << endl;
+  cout << "There are 10 levels with 13 ""sensors"" at each level" << endl;
+
 
   //Tama taytyy jatkossa paremmin mutta simulointien perusteella nayttaa, etta boxissa
   //k/STAR_mean = 0.97 + segment_length/Box_edge. Kaytetaan segment_length = 0.1 m. Josta
@@ -888,44 +880,12 @@ template<class TREE, class TS,class BUD>
    cout << endl;
    cout << " a  b " << a << " " << b << endl;
 
-   //  BoundingBox bb;
-   //  FindCfBoundingBox<TS,BUD> fb1(!wood_voxel);
-  FindCfBoundingBox<TS,BUD> fb1(false);
 
-  for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
-    bb = Accumulate(*vtree[k], bb, fb1);
+   //There need to me more trees than only target tree
+  if(no_trees <= 1) {
+    cout << "Only target tree or nothing in calculateRadiation() - exiting." << endl;
+    exit(0);
   }
-
-  Point ll = bb.getMin();
-  Point ur = bb.getMax();
-
-  vs->resize(ll, ur);
-
-    //Note: not first tree, since it will be the first to be calculated
-    //and its foliage won't be in the voxelspace 
-    // unless dump_self is set
-
-    vs->reset();
-
-     for (unsigned int k = 1; k < (unsigned int)no_trees; k++)
-       //      DumpCfTree(*vs, *vtree[k], num_parts, wood_voxel);
-      DumpCfTree(*vs, *vtree[k], num_parts, true);
-
-
-    cout << endl << "getArea() " << vs->getArea() 
-	 << " getLowerLeftCorner() " << vs->getLowerLeftCorner();
-    cout << " getUpperRightCorner() " << vs->getUpperRightCorner();
-    cout << " getNumberOfBoxes() " << vs->getNumberOfBoxes() << " getNumberOfFilledBoxes() "
-	 << vs->getNumberOfFilledBoxes() << " getNumberOfTreeSegments() "
-	 << vs->getNumberOfTreeSegments() << endl;
-    cout << " getBoxVolume() " << vs->getBoxVolume() << " getXSideLength() " << vs->getXSideLength() << endl;
-    cout << " getYSideLength() " << vs->getYSideLength() << " getZSideLength() " << vs->getZSideLength() << endl;
-    cout << " getNoBoxX() " << vs->getNoBoxX() << " getNoBoxY() " << vs->getNoBoxY()
-	 << " getNoBoxZ() " << vs->getNoBoxX() << endl;
-    cout << " getNeedleArea() " << vs->getNeedleArea() << " getLeafArea() " <<  vs->getLeafArea() << endl;
-    cout << endl;
-
-
 
    if(print_box_cf_data) {
      PrintBoxCfData(*vs, box_cf_data_file, false);
@@ -942,6 +902,16 @@ template<class TREE, class TS,class BUD>
 
   //Tassa vain voxel
    bool virittely_dump = false;                    //HUOM virittely
+
+
+
+   //Before radiation calculations set up the sky
+ for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
+   GetFirmament(*vtree[k]).resize(15,15,1200.0);
+ }
+
+ SetValue(*vtree[0],TreeQinMax,GetFirmament(*t_t).diffuseBallSensor());    //target tree is the first
+
 
 
    EvaluateRadiationForCfTreeSegment_3<ScotsPineSegment,ScotsPineBud>
