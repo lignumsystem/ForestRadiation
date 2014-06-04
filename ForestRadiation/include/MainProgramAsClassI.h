@@ -287,6 +287,8 @@ template<class TREE, class TS, class BUD>
     while (mtf.eof() == false)
       {
 	getline(mtf,treef);
+	treef.erase(std::remove(treef.begin(), treef.end(), ' '),
+		    treef.end());                //strip dangerous spaces from file name
 	if(mtf.eof() == true)
 	  break;
 	tree_files.push_back(treef);
