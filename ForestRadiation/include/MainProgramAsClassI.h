@@ -425,6 +425,7 @@ template<class TREE, class TS,class BUD>
     of.close();
   }
 
+  XMLDomTreeReader<ScotsPineSegment,ScotsPineBud> createTrees_reader;
   for (int i = 0; i < no_trees; i++){
     pair<double,double> p = locations[i];
 
@@ -450,16 +451,16 @@ template<class TREE, class TS,class BUD>
     //If a voxel space tree (segments are in voxelboxes) is made, above only a empty tree is generated,
     //and the the tree is definedconstructed below in initializeVoxelSpace()
 
+
     if(!voxel_tree) {
-      XMLDomTreeReader<ScotsPineSegment,ScotsPineBud> reader;
       if(!many_trees) {
-	reader.readXMLToTree(*t, input_tree_file);
+	createTrees_reader.readXMLToTree(*t, input_tree_file);
       }
       else {
 	int no_many_trees = (int)tree_files.size();
 	unsigned int tree = (unsigned int)(i%no_many_trees);   //all trees are used in the same proportion
+	createTrees_reader.readXMLToTree(*t, tree_files[tree]);
 
-	reader.readXMLToTree(*t, tree_files[tree]);
 	//In the case of many trees & generated (random) positions
 	//store positions & trees in the positions to be able to
 	//repeat the run with the same configuration
@@ -519,7 +520,10 @@ template<class TREE, class TS,class BUD>
       Af = Accumulate(*t,Af,CollectFoliageArea<TS,BUD>());
       cout << "Af " << Af << endl;
 
-      MoveTree<TS,BUD> move(Point(p.first,p.second,0.0)-GetPoint(*t),*t);
+      Point mov = Point(p.first,p.second,0.0)-GetPoint(*t);
+//      MoveTree<TS,BUD> move(Point(p.first,p.second,0.0)-GetPoint(*t),*t);
+      MoveTree<TS,BUD> move(mov,*t);
+
       ForEach(*t, move);
 
     if (verbose){
@@ -531,6 +535,7 @@ template<class TREE, class TS,class BUD>
     vtree.push_back(t);   //this must here (also for voxel_tree) since in the case of voxel_tree the first
                           //tree in vtree is reshaped as voxeltree in initializeVoxelSpace()
   } //for(int i = ...
+
 }    //::createTrees(
 
 
