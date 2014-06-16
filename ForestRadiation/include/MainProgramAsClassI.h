@@ -38,7 +38,7 @@ template<class TREE, class TS, class BUD>
   cout << "[-voxelTree] [-boxDirEffect] [-treeInfo] [-segmentInfo <file>]" << endl;
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
-  cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI]" << endl;
+  cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI] [-zeroWoodyRadius]" << endl;
   cout << "-generateLocations <num>  In this case <num> trees will be generated to random locations. If this" << endl;
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
@@ -79,7 +79,8 @@ template<class TREE, class TS, class BUD>
   cout << "-writeOnlyFile         Writes only positions & trees to runfile.dat and exits, requires -manyTrees" << endl;
   cout << "-getTreesPos <file>    Reads trees (xml files) and their positions from file" << endl;
   cout << "-radiusOnly <r>        Only trees at max distance r m are used in the calculation." << endl;
-  cout << "-X, -Y, -Z <value>     X, y, z sidelengths of VoxelSpace (defaults are 10 m, 10 m, 3 m)" << endl; 
+  cout << "-X, -Y, -Z <value>     X, y, z sidelengths of VoxelSpace (defaults are 10 m, 10 m, 3 m)" << endl;
+  cout << "-zeroWoodyRadius       The woody radii in all shading trees set to ca. zero: SetValue(*ts,LGAR, 0.0001);" << endl; 
   cout  << endl;
 }
 
@@ -104,6 +105,13 @@ template<class TREE, class TS, class BUD>
     cout << "parseCommandLine begin" <<endl;
   }
 
+  int zz = 1;
+  getThis(zz);
+  cout << zz << endl;
+
+  // zz = getThis(4);
+  //cout << zz << endl;
+  exit(0);
   checkCommandLine(argc,argv);
 
   string clarg;
@@ -319,9 +327,11 @@ template<class TREE, class TS, class BUD>
   calculateDirectionalStar = false;
   if (CheckCommandLine(argc,argv,"-calculateDirectionalStar"))
     calculateDirectionalStar = true;
-  //cout<<"THS IS THE VALE "<<bool(calculateDirectionalStar)<<endl;
 
-
+  zero_woody_radius = false;
+  if(CheckCommandLine(argc,argv,"-zeroWoodyRadius")) {
+    zero_woody_radius = true;
+  }
 
   if (verbose){
     cout << "parseCommandLine end" <<endl;
@@ -438,6 +448,10 @@ template<class TREE, class TS,class BUD>
       XMLDomTreeReader<ScotsPineSegment,ScotsPineBud> reader;
       reader.readXMLToTree(*t, comp_tree);
 
+      if(zero_woody_radius) {
+	ForEach(*t,ZeroWoodyRadius());
+      }
+
       Compartments result;
       result = Accumulate(*t,result,AddUpCompartments<ScotsPineSegment,ScotsPineBud>());
       cout << "Buds " << result.buds << endl;
@@ -455,11 +469,17 @@ template<class TREE, class TS,class BUD>
     if(!voxel_tree) {
       if(!many_trees) {
 	createTrees_reader.readXMLToTree(*t, input_tree_file);
+	if(zero_woody_radius) {
+	  ForEach(*t,ZeroWoodyRadius());
+	}
       }
       else {
 	int no_many_trees = (int)tree_files.size();
 	unsigned int tree = (unsigned int)(i%no_many_trees);   //all trees are used in the same proportion
 	createTrees_reader.readXMLToTree(*t, tree_files[tree]);
+	if(zero_woody_radius) {
+	  ForEach(*t,ZeroWoodyRadius());
+	}
 
 	//In the case of many trees & generated (random) positions
 	//store positions & trees in the positions to be able to
@@ -525,6 +545,12 @@ template<class TREE, class TS,class BUD>
       MoveTree<TS,BUD> move(mov,*t);
 
       ForEach(*t, move);
+
+/*       cout << "After " << GetPoint(*t); */
+
+      Axis<TS,BUD>& ax = GetAxis(*t);
+/*       TreeSegment<TS,BUD>* ts = GetFirstTreeSegment(ax); */
+/*       cout << "my_point " << GetPoint(*ts); */
 
     if (verbose){
       cout << "Created a tree at: " << p.first << " " << p.second <<endl;
@@ -1014,6 +1040,9 @@ template<class TREE, class TS,class BUD>
 
   XMLDomTreeReader<ScotsPineSegment,ScotsPineBud> reader;
   reader.readXMLToTree(*t, input_tree_file);
+  if(zero_woody_radius) {
+    ForEach(*t,ZeroWoodyRadius());
+  }
 
   //2) First and only tree in vector vtree
 
@@ -1241,6 +1270,9 @@ template<class TREE, class TS, class BUD>
   		       "flr.fun");
 
       reader.readXMLToTree(*t, xml_file);
+      if(zero_woody_radius) {
+	ForEach(*t,ZeroWoodyRadius());
+      }
 
       MoveTree<ScotsPineSegment,ScotsPineBud>
 	move(Point(x,y,0.0)-GetPoint(*t),*t);

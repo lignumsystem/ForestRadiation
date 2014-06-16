@@ -475,4 +475,18 @@ class ResultsToFile {
   LGMdouble qmax;
 };
 
+
+class ZeroWoodyRadius{
+public:
+  TreeCompartment<ScotsPineSegment,ScotsPineBud>* 
+    operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
+  {
+    if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
+      SetValue(*ts,LGAR, 0.0001);
+    }
+    return tc;
+  }
+};
+
+
 #endif

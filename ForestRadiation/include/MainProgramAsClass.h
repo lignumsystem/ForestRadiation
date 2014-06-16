@@ -58,6 +58,9 @@ template <class TREE, class TS, class BUD>
     bool getWriteOnlyFile() {return write_only_file;}
     bool getManyTrees() {return many_trees;}
     bool getTreesFromFile() {return trees_from_file;}
+    void getThis(int& i) {
+      i++;
+    }
  private:
     vector<TREE*> vtree;//vector of trees
     vector<pair<double,double> > locations;
@@ -112,6 +115,7 @@ template <class TREE, class TS, class BUD>
     LGMdouble max_radius;
     bool calculateDirectionalStar; //To calculate directional STAR values
     LGMdouble vs_x, vs_y, vs_z;    //Dimensions of the voxelspace
+    bool zero_woody_radius;        //If woody radius of all shading trees is about 0
 };
 
 
