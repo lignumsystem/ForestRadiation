@@ -105,14 +105,7 @@ template<class TREE, class TS, class BUD>
     cout << "parseCommandLine begin" <<endl;
   }
 
-  int zz = 1;
-  getThis(zz);
-  cout << zz << endl;
-
-  // zz = getThis(4);
-  //cout << zz << endl;
-  exit(0);
-  checkCommandLine(argc,argv);
+   checkCommandLine(argc,argv);
 
   string clarg;
 
@@ -143,7 +136,7 @@ template<class TREE, class TS, class BUD>
   middle_stand.first = vs_x/2.0;
   middle_stand.second = vs_y/2.0;
   
-
+  cout << "HEP" << endl;
 
   clarg.clear();
   if (ParseCommandLine(argc,argv,"-treeDist", clarg))
