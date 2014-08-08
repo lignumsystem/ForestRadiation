@@ -7,4 +7,13 @@ The R analysis that was written to analysie the data for forest radiation are as
 5).radiation_analysis.r : This script plots the radiation i.e. the Qacc vs Qvox for all the seeds mentioned.Please change the path here. This includes the paths for the scripts and also the output.
 6). radiationAnalysisAllSeeds.r : Change the path here also as required. Radiation analysis for all the seeds.
 
+To run:
+      These functions need to be in the same folder. then change the rights to be executed as a script using chmod. Then use
+./deviationMainR.r
+./deviationForAllSeeds.r
+./radiation_analysis.r
+./radiationAnalysisAllSeeds.r
+
+
+for execution and get the results. Folders are generated as per the code executed. Except that you need a result folder and need to specify that while changing the paths and then all other files are automatically generated.
 
