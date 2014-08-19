@@ -29,7 +29,7 @@ MainProgramAsClass<TREE,TS,BUD>::~MainProgramAsClass()
 template<class TREE, class TS, class BUD>
   void MainProgramAsClass<TREE,TS,BUD>::usage()const
 {
-  cout << "Usage:  ./lig-forest [-numParts <parts>]  [-treeDist <dist>] [-hw <hw_start>] [-viz]" <<endl;
+  cout << "Usage:  ./lig-radiation [-numParts <parts>]  [-treeDist <dist>]" <<endl;
   cout << "[-xml <filename>] [-writeVoxels] [-noWoodVoxel]" <<endl;
   cout << "[-treeFile <filename>] [-generateLocations  <num>] [-treeLocations <file>]" << endl;
   cout << "[-resultfile <file>] [-Voxboxside <value>]" << endl;
@@ -136,8 +136,6 @@ template<class TREE, class TS, class BUD>
   middle_stand.first = vs_x/2.0;
   middle_stand.second = vs_y/2.0;
   
-  cout << "HEP" << endl;
-
   clarg.clear();
   if (ParseCommandLine(argc,argv,"-treeDist", clarg))
     tree_distance = atof(clarg.c_str());
@@ -503,8 +501,6 @@ template<class TREE, class TS,class BUD>
 	LGMdouble h_cb =  dcld.HCrownBase();
 	LGMdouble dbh = GetValue(*t,LGADbh);
 	LGMdouble h = GetValue(*t,LGAH);
-	cout << h << endl;
-	exit(0);
 	LGMdouble Wf = 0.0;
 	Accumulate(*t,Wf,CollectFoliageMass<TS,BUD>());
 	LGMdouble d_base = GetValue(*t,LGADbase);
@@ -517,13 +513,17 @@ template<class TREE, class TS,class BUD>
 	LGMdouble Wf_Repolab = -2.385 + 15.022*dk/(dk+4.0)-11.979*h/(h+1.0)
 	  + 1.116*log(cl)+ 0.5*(0.034 + 0.095);
 	Wf_Repolab = exp(min(max(-20.0,Wf_Repolab),20.0));
+        CrownVolume<TS,BUD> cv;
+        LGMdouble cvol = cv(*t);
+	LGMdouble NAD = 0.0;
+	if(cvol > 0.0)
+	  NAD = treeAf/cvol;
 
-
-	cout << " Tree H (m) Dbh (cm), Dbase (cm) Hcrown_base (m) Dcrown_base (cm)  Wf (kg dm)  Af (m2) Wf_Repola"
+	cout << " Tree H (m) Dbh (cm), Dbase (cm) Hcrown_base (m) Dcrown_base (cm)  Wf (kg dm)  Af (m2) NAD(m2/m3) Wf_Repola"
 	  " Wf_Repolab"  << endl;
 	cout <<  input_tree_file << " "
 	     << h << " " << 100.0*dbh << " " << 100.0*d_base << " " << h_cb << " "
-	     << 100.0*d_cb << " " << 2.0*Wf << " " << treeAf << " " << Wf_Repola
+	     << 100.0*d_cb << " " << 2.0*Wf << " " << treeAf << " " << NAD <<  " " << Wf_Repola
 	     << " " << Wf_Repolab << endl;
 
 	exit(0);
