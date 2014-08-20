@@ -68,7 +68,7 @@ template<class TREE, class TS, class BUD>
        << endl;
   cout << "-boxDirEffect          If effect of mean direction of segments in box considered (default = no)"
        << endl;
-  cout << "-treeInfo              Writes H, Dbh, Dbase, Hcrown_base Dcrown_base Wf Af of tree on console and stops." << endl;
+  cout << "-treeInfo              Writes H, Dbh, Dbase, Hcrown_base Dcrown_base Wf Af NAD of tree on console and stops." << endl;
   cout << "-correctSTAR           If the descrepancy with STATR from eq. and STAR (ca. STAR = -0.041 + 1.056*STAR_eq) is corr."
        << endl;
   cout << "-constantSTAR <value>  STAR has constant value <value> (may be corrected by -correctSTAR)."  << endl;
@@ -465,8 +465,9 @@ template<class TREE, class TS,class BUD>
 	}
       }
       else {
-	int no_many_trees = (int)tree_files.size();
-	unsigned int tree = (unsigned int)(i%no_many_trees);   //all trees are used in the same proportion
+	LGMdouble num_trees = (double)tree_files.size();
+	//trees are taken randomly => all trees are used in the same proportion
+	unsigned int tree = (unsigned int) (ran3(&ran3_seed)* num_trees);
 	createTrees_reader.readXMLToTree(*t, tree_files[tree]);
 	if(zero_woody_radius) {
 	  ForEach(*t,ZeroWoodyRadius());
