@@ -1,15 +1,29 @@
 #!/usr/bin/env Rscript
-source("read_files.r") # Read in the files of data
-seeds =c(787237, 536199,  1676779,  546327,  235663) # Specify the seeds here
-#numOfTrees =  100
+args <- commandArgs()
+commandArgs <- function() args[1]
+source("read_files.r")
 source("functionsInR.r") #Functions are obtained here
-pathmain = paste("Deviation/","AllSeeds",as.character(numOfTrees),sep='')
+voxBoxNo = c(0.1,0.2,0.3,0.4)
+path1 = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation/","ForAllSeedsnumParts_",as.character(args[1]),sep='')
+dir.create(path1, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+
+
+pathmain = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation/","ForAllSeedsnumParts_",as.character(args[1]),"/",as.character(numOfTrees),sep='')
 dir.create(pathmain, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 
-dirData      = cbind(dirDataVoxBox1, dirDataVoxBox2,dirDataVoxBox3,dirDataVoxBox4,dirDataVoxBox5)
-meanData     = cbind(meanDataVoxBox1, meanDataVoxBox2,meanDataVoxBox3,meanDataVoxBox4,meanDataVoxBox5)
-accurateData = cbind(accurateDataVoxBox1, accurateDataVoxBox2,accurateDataVoxBox3,accurateDataVoxBox4,accurateDataVoxBox5)
-meanBDYesData= cbind(meanBDYes1, meanBDYes2,meanBDYes3,meanBDYes4,meanBDYes5)
+cnt = 1
+for(seedInt in seeds){
+   
+dirData      = cbind(get(paste("dirDataVoxBox",as.character(cnt),sep='')))
+meanData     = cbind(get(paste("meanDataVoxBox",as.character(cnt),sep='')))
+accurateData = cbind(get(paste("accurateDataVoxBox",as.character(cnt),sep='')))
+meanBDYesData= cbind(get(paste("meanBDYes",as.character(cnt),sep ='')))
+
+
+
+cnt = cnt +1
+}
+
 
 
 CalculateRelHtandDev<- function(meanDataVoxBox,accurateDataVoxBox,dirDataVoxBox,meanBDYes,titleString,vox){ 
@@ -54,29 +68,11 @@ title(main= titleString,outer=T)
 dev.off()
 }
 #*******************************************************************************************************************************
-
-pdf(paste("Deviation/AllSeeds",as.character(numOfTrees),"/","deviationAllSeed","Vox0.1.pdf",sep = '' ))
+for (box in voxBoxNo){
+pdf(paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation/ForAllSeedsnumParts_",as.character(args[1]),"/",as.character(numOfTrees),"/","deviationAllSeed","Vox",as.character(box),".","pdf",sep = '' ))
 attach(mtcars)
 par(mfrow=c(2,2))
-CalculateRelHtandDev(meanData,accurateData,dirData,meanBDYesData,"All Seeds Vox= 0.1",0.1)
-
-pdf(paste("Deviation/AllSeeds", as.character(numOfTrees),"/","deviationAllSeed","Vox0.2.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanData,accurateData,dirData,meanBDYesData,"All Seeds Vox= 0.2",0.2)
-
-
-pdf(paste("Deviation/AllSeeds",as.character(numOfTrees),"/","deviationAllSeed","Vox0.3.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanData,accurateData,dirData,meanBDYesData,"All Seeds Vox= 0.3",0.3)
-
-
-pdf(paste("Deviation/AllSeeds",as.character(numOfTrees),"/","deviationAllSeed","Vox0.4.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanData,accurateData,dirData,meanBDYesData,"All Seeds Vox= 0.4",0.4)
-
-
+CalculateRelHtandDev(meanData,accurateData,dirData,meanBDYesData,paste("All Seeds Vox=",as.character(box),sep =''),box)
+}
 
 

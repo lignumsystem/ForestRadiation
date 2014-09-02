@@ -1,14 +1,23 @@
 #!/usr/bin/env Rscript
-seeds =c(787237, 536199,  1676779,  546327,  235663)
-source("read_files.r") # source the file to be read
-path = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation"  # Change the path where you want the results here.
+#commandArgs <- function() 5
+args <- commandArgs()
+commandArgs <- function() args[1]
+source("read_files.r")
+path = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation"  # Change the path where you want the result
+
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 pathmain = paste("Deviation/",as.character(numOfTrees),sep='')
 dir.create(pathmain, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 source("functionsInR.r")
+
+voxBoxNo = c(0.1,0.2,0.3,0.4)
+
 CalculateRelHtandDev<- function(meanDataVoxBox,accurateDataVoxBox,dirDataVoxBox,meanBDYes,titleString,vox){ 
-# calculates the relative deviation for mean STAR values
+
+
 relDevM1 = relativeDeviation(meanDataVoxBox$V7[meanDataVoxBox$V1 == vox],accurateDataVoxBox[7])
+print(nrow(relDevM1))             
+print(nrow(meanDataVoxBox$V4[meanDataVoxBox$V1 == vox]))
 relHgtM1 = relativeHeight(meanDataVoxBox$V4[meanDataVoxBox$V1 == vox])
 total_num1= index_summary(meanDataVoxBox$V7[meanDataVoxBox$V1 == vox],accurateDataVoxBox[7]) 
 total_num1=specify_decimal(total_num1,3)
@@ -50,153 +59,23 @@ dev.off()
 
 
 
-#*******************************************************************************************************************************
+#*********************************************************************
+                                   
 
-# FOR SEED1
-path = paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[1]),sep='')
+path = paste("Deviation/",as.character(numOfTrees),"/","numParts_",as.character(args[1]),sep='')
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[1]),"/","deviationSeed",as.character(seeds[1]),"Vox0.1.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox1,accurateDataVoxBox1,dirDataVoxBox1,meanBDYes1,paste("SEED",as.character(seeds[1])),0.1)
+cnt = 1
 
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[1]),"/","deviationSeed",as.character(seeds[1]),"Vox0.2.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox1,accurateDataVoxBox1,dirDataVoxBox1,meanBDYes1,paste("SEED",as.character(seeds[1])),0.2)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[1]),"/","deviationSeed",as.character(seeds[1]),"Vox0.3.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox1,accurateDataVoxBox1,dirDataVoxBox1,meanBDYes1,paste("SEED",as.character(seeds[1])),0.3)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[1]),"/","deviationSeed",as.character(seeds[1]),"Vox0.4.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox1,accurateDataVoxBox1,dirDataVoxBox1,meanBDYes1,paste("SEED",as.character(seeds[1])),0.4)
-
-
-
-
-#FOR SEED 2
-path = paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[2]),sep='')
+for(seedInt in seeds){
+path = paste("Deviation/",as.character(numOfTrees),"/","numParts_",as.character(args[1]),"/",as.character(seedInt),sep='')
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+for (box in voxBoxNo){
 
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[2]),"/","deviationSeed",as.character(seeds[2]),"Vox0.1.pdf",sep = '' ))
+pdf(paste("Deviation/",as.character(numOfTrees),"/","numParts_",as.character(args[1]),"/",as.character(seedInt),"/","deviationSeed",as.character(seedInt),"Vox",as.character(box),".","pdf",sep = '' ))
 attach(mtcars)
 par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox2,accurateDataVoxBox2,dirDataVoxBox2,meanBDYes2,paste("SEED",as.character(seeds[2])),0.1)
+CalculateRelHtandDev(get(paste("meanDataVoxBox",as.character(cnt),sep='')),get(paste("accurateDataVoxBox",as.character(cnt),sep='')),get(paste("dirDataVoxBox",as.character(cnt),sep='')),get(paste("meanBDYes",as.character(cnt),sep='')),paste("SEED",as.character(seedInt)),box)
 
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[2]),"/","deviationSeed",as.character(seeds[2]),"Vox0.2.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox2,accurateDataVoxBox2,dirDataVoxBox2,meanBDYes2,paste("SEED",as.character(seeds[2])),0.2)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[2]),"/","deviationSeed",as.character(seeds[2]),"Vox0.3.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox2,accurateDataVoxBox2,dirDataVoxBox2,meanBDYes2,paste("SEED",as.character(seeds[2])),0.3)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[2]),"/","deviationSeed",as.character(seeds[2]),"Vox0.4.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox2,accurateDataVoxBox2,dirDataVoxBox2,meanBDYes2,paste("SEED",as.character(seeds[2])),0.4)
-
-
-#SEED 3
-path = paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[3]),sep='')
-dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[3]),"/","deviationSeed",as.character(seeds[3]),"Vox0.1.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox3,accurateDataVoxBox3,dirDataVoxBox3,meanBDYes3,paste("SEED",as.character(seeds[3])),0.1)
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[3]),"/","deviationSeed",as.character(seeds[3]),"Vox0.2.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox3,accurateDataVoxBox3,dirDataVoxBox3,meanBDYes3,paste("SEED",as.character(seeds[3])),0.2)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[3]),"/","deviationSeed",as.character(seeds[3]),"Vox0.3.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox3,accurateDataVoxBox3,dirDataVoxBox3,meanBDYes3,paste("SEED",as.character(seeds[3])),0.3)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[3]),"/","deviationSeed",as.character(seeds[3]),"Vox0.4.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox3,accurateDataVoxBox3,dirDataVoxBox3,meanBDYes3,paste("SEED",as.character(seeds[3])),0.4)
-
-#FOR SEED 4
-path = paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[4]),sep='')
-dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[4]),"/","deviationSeed",as.character(seeds[4]),"Vox0.1.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox4,accurateDataVoxBox4,dirDataVoxBox4,meanBDYes4,paste("SEED",as.character(seeds[4])),0.1)
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[4]),"/","deviationSeed",as.character(seeds[4]),"Vox0.2.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox4,accurateDataVoxBox4,dirDataVoxBox4,meanBDYes4,paste("SEED",as.character(seeds[4])),0.2)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[4]),"/","deviationSeed",as.character(seeds[4]),"Vox0.3.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox4,accurateDataVoxBox4,dirDataVoxBox4,meanBDYes4,paste("SEED",as.character(seeds[4])),0.3)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[4]),"/","deviationSeed",as.character(seeds[4]),"Vox0.4.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox4,accurateDataVoxBox4,dirDataVoxBox4,meanBDYes4,paste("SEED",as.character(seeds[4])),0.4)
-
-#FOR SEED 5
-path =  paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[5]),sep='')
-dir.create(path,showWarnings = TRUE, recursive = FALSE, mode = "0777")
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[5]),"/","deviationSeed",as.character(seeds[5]),"Vox0.1.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox5,accurateDataVoxBox5,dirDataVoxBox5,meanBDYes5,paste("SEED",as.character(seeds[5])),0.1)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[5]),"/","deviationSeed",as.character(seeds[5]),"Vox0.2.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox5,accurateDataVoxBox5,dirDataVoxBox5,meanBDYes5,paste("SEED",as.character(seeds[5])),0.2)
-
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[5]),"/","deviationSeed",as.character(seeds[5]),"Vox0.3.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox5,accurateDataVoxBox5,dirDataVoxBox5,meanBDYes5,paste("SEED",as.character(seeds[5])),0.3)
-
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[5]),"/","deviationSeed",as.character(seeds[5]),"Vox0.4.pdf",sep = '' ))
-attach(mtcars)
-par(mfrow=c(2,2))
-CalculateRelHtandDev(meanDataVoxBox5,accurateDataVoxBox5,dirDataVoxBox5,meanBDYes5,paste("SEED",as.character(seeds[5])),0.4)
-#*********************************************************************************************************************************
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[1]),"/","TreeArrangement",as.character(seeds[1]),".","pdf",sep = '' ))
-plotTreeArrangement(dataSeed1,paste("SEED",as.character(seeds[1])))
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[2]),"/","TreeArrangement",as.character(seeds[2]),".","pdf",sep = '' ))
-plotTreeArrangement(dataSeed2,paste("SEED",as.character(seeds[2])))
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[3]),"/","TreeArrangement",as.character(seeds[3]),".","pdf",sep = '' ))
-plotTreeArrangement(dataSeed3,paste("SEED",as.character(seeds[3])))
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[4]),"/","TreeArrangement",as.character(seeds[4]),".","pdf",sep = '' ))
-plotTreeArrangement(dataSeed4,paste("SEED",as.character(seeds[4])))
-
-pdf(paste("Deviation/",as.character(numOfTrees),"/",as.character(seeds[5]),"/","TreeArrangement",as.character(seeds[5]),".","pdf",sep = '' ))
-plotTreeArrangement(dataSeed5,paste("SEED",as.character(seeds[5])))
-#*********************************************************************************************************************************
+}
+cnt = cnt+1
+}

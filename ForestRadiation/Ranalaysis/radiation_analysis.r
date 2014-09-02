@@ -1,9 +1,14 @@
 #!/usr/bin/env Rscript
-# Plotting script for each seed and for each voxel size.
+args <- commandArgs()
+commandArgs <- function() args[1]
 source("read_files.r")
-seeds = c(787237, 536199, 1676779, 546327, 235663)
-path = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Rad",as.character(numOfTrees),"New",sep ='') #Change the path here.
+
+path = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),sep ='')
+
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+
+
+
 # Function to plot and save the files in the desired directory. Could be more concised by using a loop but can be improved later.
 
 custom_plotting<-function(accurateDataVoxBox1,meanDataVoxBox1,dirDataVoxBox1,titleString){
@@ -55,67 +60,25 @@ title(main= titleString,outer=T)
 dev.off()
 }
 
+path = paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/bdYes",sep='')
+dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 
-#***********************************************************************************************************************************
-pdf(paste("Rad",as.character(numOfTrees),"New/","Seed",as.character(seeds[1]),".pdf",sep = ''))
+
+cnt = 1
+for(seedInts in seeds){
+pdf(paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/","RadSeedNumparts_",as.character(args[1]),"_",as.character(seedInts),".pdf",sep = ''))
 attach(mtcars)
 par(mfrow=c(4,2))
-custom_plotting(accurateDataVoxBox1,meanDataVoxBox1,dirDataVoxBox1,paste("Seed", as.character(seeds[1])))
-
-pdf(paste("Rad",as.character(numOfTrees),"New/","Seed",as.character(seeds[2]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(4,2))
-custom_plotting(accurateDataVoxBox2,meanDataVoxBox2,dirDataVoxBox2,paste("Seed", as.character(seeds[2])))
-
-
-pdf(paste("Rad",as.character(numOfTrees),"New/","Seed",as.character(seeds[3]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(4,2))
-custom_plotting(accurateDataVoxBox3,meanDataVoxBox3,dirDataVoxBox3,paste("Seed", as.character(seeds[3])))
-
-
-pdf(paste("Rad",as.character(numOfTrees),"New/","Seed",as.character(seeds[4]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(4,2))
-custom_plotting(accurateDataVoxBox4,meanDataVoxBox4,dirDataVoxBox4,paste("Seed", as.character(seeds[4])))
-
-
-pdf(paste("Rad",as.character(numOfTrees),"New/","Seed",as.character(seeds[5]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(4,2))
-custom_plotting(accurateDataVoxBox5,meanDataVoxBox5,dirDataVoxBox5,paste("Seed", as.character(seeds[5])))
+custom_plotting(get(paste("accurateDataVoxBox",as.character(cnt),sep='')),get(paste("meanDataVoxBox",as.character(cnt),sep='')),get(paste("dirDataVoxBox",as.character(cnt),sep='')) ,paste("Seed", as.character(seedInts)))
 
 
 #**********************************************************************************************************************************
 # code to plot the boxdir yes part
-path = paste("Rad",as.character(numOfTrees),"New/bdYes",sep='')
-dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-pdf(paste("Rad",as.character(numOfTrees),"New/bdYes/","SeedYMean",as.character(seeds[1]),".pdf",sep = ''))
+
+
+pdf(paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/bdYes/","SeedYMean",as.character(seedInts),".pdf",sep = ''))
 attach(mtcars)
 par(mfrow=c(2,2))
-custom_plotting2(accurateDataVoxBox1,meanBDYes1,paste("Seed", as.character(seeds[1])))
-
-pdf(paste("Rad",as.character(numOfTrees),"New/bdYes/","SeedYMean",as.character(seeds[2]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(2,2))
-custom_plotting2(accurateDataVoxBox2,meanBDYes2,paste("Seed", as.character(seeds[2])))
-
-
-pdf(paste("Rad",as.character(numOfTrees),"New/bdYes/","SeedYMean",as.character(seeds[3]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(2,2))
-custom_plotting2(accurateDataVoxBox3,meanBDYes3,paste("Seed", as.character(seeds[3])))
-
-
-pdf(paste("Rad",as.character(numOfTrees),"New/bdYes/","SeedYMean",as.character(seeds[4]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(2,2))
-custom_plotting2(accurateDataVoxBox4,meanBDYes4,paste("Seed", as.character(seeds[4])))
-
-
-pdf(paste("Rad",as.character(numOfTrees),"New/bdYes/","SeedYMean",as.character(seeds[5]),".pdf",sep = ''))
-attach(mtcars)
-par(mfrow=c(2,2))
-custom_plotting2(accurateDataVoxBox5,meanBDYes5,paste("Seed", as.character(seeds[5])))
-
-
+custom_plotting2(get(paste("accurateDataVoxBox",as.character(cnt),sep='')),get(paste("meanBDYes",as.character(cnt),sep='')),paste("Seed", as.character(seedInts)))
+cnt = cnt +1
+}

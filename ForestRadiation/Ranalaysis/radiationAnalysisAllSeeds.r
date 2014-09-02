@@ -1,14 +1,22 @@
 #!/usr/bin/env Rscript
-# Plotting Script for all the seeds together
+args <- commandArgs()
+commandArgs <- function() args[1]
 source("read_files.r")
-seeds =c(787237, 536199,  1676779,  546327,  235663)
-path = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Rad",as.character(numOfTrees),"ForAllSeeds", sep ='')
+path = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/","forAllSeeds",sep ='')
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+cnt = 1
+for(seedInt in seeds){
+   
+dirData      = cbind(get(paste("dirDataVoxBox",as.character(cnt),sep='')))
+meanData     = cbind(get(paste("meanDataVoxBox",as.character(cnt),sep='')))
+accurateData = cbind(get(paste("accurateDataVoxBox",as.character(cnt),sep='')))
+meanBDYesData= cbind(get(paste("meanBDYes",as.character(cnt),sep ='')))
 
-dirData      = cbind(dirDataVoxBox1, dirDataVoxBox2,dirDataVoxBox3,dirDataVoxBox4,dirDataVoxBox5)
-meanData     = cbind(meanDataVoxBox1, meanDataVoxBox2,meanDataVoxBox3,meanDataVoxBox4,meanDataVoxBox5)
-accurateData = cbind(accurateDataVoxBox1, accurateDataVoxBox2,accurateDataVoxBox3,accurateDataVoxBox4,accurateDataVoxBox5)
-meanBDYesData= cbind(meanBDYes1, meanBDYes2,meanBDYes3,meanBDYes4,meanBDYes5)
+
+
+cnt = cnt +1
+}
+
 
 custom_plotting<-function(accurateDataVoxBox1,meanDataVoxBox1,dirDataVoxBox1,titleString){
 
@@ -59,16 +67,18 @@ title(main= titleString,outer=T)
 dev.off()
 }
 #**********************************************************************************************************************************
-pdf(paste("Rad",as.character(numOfTrees),"ForAllSeeds/","ForAllSeeds",".pdf",sep = ''))
+
+pdf(paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/","forAllSeeds","/","ForAllSeeds",".","pdf",sep = ''))
 attach(mtcars)
 par(mfrow=c(4,2))
 custom_plotting(accurateData,meanData,dirData,"For all Seeds")
 
-path = paste("Rad",as.character(numOfTrees),"ForAllSeeds/bdYes",sep='')
+path = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/","forAllSeeds","/","bdYes",sep='')
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-pdf(paste("Rad",as.character(numOfTrees),"ForAllSeeds/bdYes/","AllSeedYMean",".pdf",sep = ''))
+pdf(paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/","forAllSeeds","/","bdYes/","bdYes","AllSeedYMean",".pdf",sep = ''))
 attach(mtcars)
 par(mfrow=c(2,2))
 custom_plotting2(accurateData,meanBDYesData,"AllSeedYMean")
+
 
 
