@@ -6,16 +6,16 @@ numOfTrees = 150
 seeds = c(787237, 536199 , 1676779,  546327,  235663 ,787231, 536197, 1576775, 446327, 135663)
 
 #Paths for data
-rootpath="/Users/matrps/Riston-D/E/Hankkeet/LIGNUM/Erillishankkeet/Light/Radiation-article/Results/2-9-2014/Data/"
-pathDir = paste(rootpath,as.character(numOfTrees),"/numParts_",as.character(args[1]), "/Directional",sep = '')
+rootpath="/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
+pathDir = paste(rootpath,"/",as.character(numOfTrees),"/numParts_",as.character(args[1]), "/Directional",sep = '')
 
-pathBoxDirNo = paste(rootpath,as.character(numOfTrees),"/numParts_",as.character(args[1]),"/MeanStar/BoxDirNo/",sep ='')
+pathBoxDirNo = paste(rootpath,"/",as.character(numOfTrees),"/numParts_",as.character(args[1]),"/MeanStar/BoxDirNo/",sep ='')
 
-pathAccurate = paste(rootpath,as.character(numOfTrees),"/numparts_",as.character(args[1]),sep='')
+pathAccurate = paste(rootpath,"/","accurate",as.character(numOfTrees),"/numparts_",as.character(args[1]),sep='')
 
-pathBoxDirYes= paste(rootpath,as.character(numOfTrees),"/numParts_",as.character(args[1]), "/MeanStar/BoxDirYes/",sep='')
+pathBoxDirYes= paste(rootpath,"/",as.character(numOfTrees),"/numParts_",as.character(args[1]), "/MeanStar/BoxDirYes/",sep='')
 
-pathdataSeed = paste(rootpath,as.character(numOfTrees),"/",sep='')
+pathdataSeed = paste(rootpath,"/",as.character(numOfTrees),"/",sep='')
 
 print(pathBoxDirYes)
 cnt = 1

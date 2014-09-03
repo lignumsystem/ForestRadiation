@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
-args <- commandArgs()  # to get the argurement , substitute with true to run indiviallyt this script 
-commandArgs <- function() args[1] 
+args <- commandArgs()
+commandArgs <- function() args[1]
 source("read_files.r")
-
-path = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),sep ='') # change the path if needed
+roothpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
+path = paste(roothpath,"/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),sep ='')
 
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 
@@ -59,13 +59,13 @@ abline(0,1)
 title(main= titleString,outer=T)
 dev.off()
 }
-#************************************************MAIN ************************************************************
-path = paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/bdYes",sep='') # change the path if needed
+#****************************************************************************************************************************************
+path = paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/bdYes",sep='')
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 
 
-cnt = 1   # counter fior the names
-for(seedInts in seeds){ # 
+cnt = 1
+for(seedInts in seeds){
 pdf(paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/","RadSeedNumparts_",as.character(args[1]),"_",as.character(seedInts),".pdf",sep = ''))
 attach(mtcars)
 par(mfrow=c(4,2))
@@ -76,7 +76,7 @@ custom_plotting(get(paste("accurateDataVoxBox",as.character(cnt),sep='')),get(pa
 # code to plot the boxdir yes part
 
 
-pdf(paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/bdYes/","SeedYMean",as.character(seedInts),".pdf",sep = '')) # change the path if needed
+pdf(paste("Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/bdYes/","SeedYMean",as.character(seedInts),".pdf",sep = ''))
 attach(mtcars)
 par(mfrow=c(2,2))
 custom_plotting2(get(paste("accurateDataVoxBox",as.character(cnt),sep='')),get(paste("meanBDYes",as.character(cnt),sep='')),paste("Seed", as.character(seedInts)))

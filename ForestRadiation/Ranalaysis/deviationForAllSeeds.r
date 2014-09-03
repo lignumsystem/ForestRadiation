@@ -1,23 +1,27 @@
 #!/usr/bin/env Rscript
-args <- commandArgs()  # command to get arguement
-commandArgs <- function() args[1] # argument one is named as args
-source("read_files.r")     # source the read_files script
+args <- commandArgs()
+commandArgs <- function() args[1]
+source("read_files.r")
 source("functionsInR.r") #Functions are obtained here
-voxBoxNo = c(0.1,0.2,0.3,0.4)  # the voxBox sizes are given here 
-path1 = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation/","ForAllSeedsnumParts_",as.character(args[1]),sep='') # change the path accordinly here
-dir.create(path1, showWarnings = TRUE, recursive = FALSE, mode = "0777") # create the folder
+voxBoxNo = c(0.1,0.2,0.3,0.4)
+rootpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
+path1 = paste(rootpath,"/Deviation/","ForAllSeedsnumParts_",as.character(args[1]),sep='')
+dir.create(path1, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 
 
-pathmain = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation/","ForAllSeedsnumParts_",as.character(args[1]),"/",as.character(numOfTrees),sep='') # change the path here 
+pathmain = paste(rootpath,"/Deviation/","ForAllSeedsnumParts_",as.character(args[1]),"/",as.character(numOfTrees),sep='')
 dir.create(pathmain, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 
-cnt = 1 # counter for the names
-for(seedInt in seeds){ # code to bind all the variables
+cnt = 1
+for(seedInt in seeds){
    
 dirData      = cbind(get(paste("dirDataVoxBox",as.character(cnt),sep='')))
 meanData     = cbind(get(paste("meanDataVoxBox",as.character(cnt),sep='')))
 accurateData = cbind(get(paste("accurateDataVoxBox",as.character(cnt),sep='')))
 meanBDYesData= cbind(get(paste("meanBDYes",as.character(cnt),sep ='')))
+
+
+
 cnt = cnt +1
 }
 
@@ -65,8 +69,8 @@ title(main= titleString,outer=T)
 dev.off()
 }
 #*******************************************************************************************************************************
-for (box in voxBoxNo){ # loop for all the calculation and please change the path here.
-pdf(paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation/ForAllSeedsnumParts_",as.character(args[1]),"/",as.character(numOfTrees),"/","deviationAllSeed","Vox",as.character(box),".","pdf",sep = '' ))
+for (box in voxBoxNo){
+pdf(paste(rootpath,"/Deviation/ForAllSeedsnumParts_",as.character(args[1]),"/",as.character(numOfTrees),"/","deviationAllSeed","Vox",as.character(box),".","pdf",sep = '' ))
 attach(mtcars)
 par(mfrow=c(2,2))
 CalculateRelHtandDev(meanData,accurateData,dirData,meanBDYesData,paste("All Seeds Vox=",as.character(box),sep =''),box)
