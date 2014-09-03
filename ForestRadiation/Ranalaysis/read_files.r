@@ -5,6 +5,7 @@ print(args[1])
 numOfTrees = 150
 seeds = c(787237, 536199 , 1676779,  546327,  235663 ,787231, 536197, 1576775, 446327, 135663)
 
+#Paths for data
 pathDir = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/",as.character(numOfTrees),"/numParts_",as.character(args[1]), "/Directional",sep = '')
 
 pathBoxDirNo = paste("/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/",as.character(numOfTrees),"/numParts_",as.character(args[1]),"/MeanStar/BoxDirNo/",sep ='')
