@@ -1,8 +1,7 @@
 #!/usr/bin/env Rscript
-#commandArgs <- function() 5
-args <- commandArgs()
-commandArgs <- function() args[1]
-source("read_files.r")
+args <- commandArgs() # to get the arguement
+commandArgs <- function() args[1] 
+source("read_files.r") # source the read_files script
 path = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation"  # Change the path where you want the result
 
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
@@ -59,8 +58,8 @@ dev.off()
 
 
 
-#*********************************************************************
-                                   
+#****************************************************MAIN CODE *****************
+                                   # Change the directory or path where needed in this section
 
 path = paste("Deviation/",as.character(numOfTrees),"/","numParts_",as.character(args[1]),sep='')
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
