@@ -2,7 +2,7 @@
 args <- commandArgs()
 batch_args <- args[1]
 print(args[1])
-numOfTrees = 150
+numOfTrees = 22
 seeds = c(787237, 536199 , 1676779,  546327,  235663 ,787231, 536197, 1576775, 446327, 135663)
 
 #Paths for data

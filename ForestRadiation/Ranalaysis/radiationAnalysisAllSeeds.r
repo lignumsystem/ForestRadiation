@@ -2,7 +2,7 @@
 args <- commandArgs()
 commandArgs <- function() args[1]
 source("read_files.r")
-rootpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
+#rootpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
 path = paste(rootpath,"/Radiation",as.character(numOfTrees),"numParts_",as.character(args[1]),"/","forAllSeeds",sep ='')
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 cnt = 1

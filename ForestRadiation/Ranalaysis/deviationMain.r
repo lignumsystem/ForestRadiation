@@ -3,7 +3,8 @@
 args <- commandArgs()
 commandArgs <- function() args[1] 
 source("read_files.r")
-path = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp/Deviation"  # Change the path where you want the result
+
+path = paste(rootpath,"/Deviation",sep='')  # Change the path where you want the result
 
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 pathmain = paste("Deviation/",as.character(numOfTrees),sep='')

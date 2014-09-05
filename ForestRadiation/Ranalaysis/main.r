@@ -1,17 +1,16 @@
 #!/usr/bin/env Rscript
 
-numparts = c(3,5) # Please give the required nparts here.
+numparts = c(3,5)
 
+rootpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
 
-
-for(counter in numparts) # loop for numparts
+for(counter in numparts)
 {
-   commandArgs <- function() counter
- #  source("read_files_general.r")
-   source("deviationMain.r")                # deviation for each seeds
-   source("radiation_analysis.r")           # radiation analysis for each seeds
-   source("radiationAnalysisAllSeeds.r")    # Radiation analysis for all seeds
-   source("deviationForAllSeeds.r")         # Deviation for all seeds. 
+   commandArgs <- function() counter 
+   source("deviationMain.r") 
+   source("radiation_analysis.r")  
+   source("radiationAnalysisAllSeeds.r") 
+   source("deviationForAllSeeds.r")
 
 }
 

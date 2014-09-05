@@ -4,7 +4,7 @@ commandArgs <- function() args[1]
 source("read_files.r")
 source("functionsInR.r") #Functions are obtained here
 voxBoxNo = c(0.1,0.2,0.3,0.4)
-rootpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
+#rootpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
 path1 = paste(rootpath,"/Deviation/","ForAllSeedsnumParts_",as.character(args[1]),sep='')
 dir.create(path1, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 
