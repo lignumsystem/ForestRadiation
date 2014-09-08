@@ -520,12 +520,12 @@ template<class TREE, class TS,class BUD>
 	if(cvol > 0.0)
 	  NAD = treeAf/cvol;
 
-	cout << " Tree H (m) Dbh (cm), Dbase (cm) Hcrown_base (m) Dcrown_base (cm)  Wf (kg dm)  Af (m2) NAD(m2/m3) Wf_Repola"
+	cout << " Tree H (m) Dbh (cm), Dbase (cm) Hcrown_base (m) Dcrown_base (cm)  Wf (kg dm)  Af (m2) CVol (m3) NAD(m2/m3) Wf_Repola"
 	  " Wf_Repolab"  << endl;
 	cout <<  input_tree_file << " "
 	     << h << " " << 100.0*dbh << " " << 100.0*d_base << " " << h_cb << " "
-	     << 100.0*d_cb << " " << 2.0*Wf << " " << treeAf << " " << NAD <<  " " << Wf_Repola
-	     << " " << Wf_Repolab << endl;
+	     << 100.0*d_cb << " " << 2.0*Wf << " " << treeAf << " " << cvol << " " << NAD <<  " " << Wf_Repola
+	     << " " << Wf_Repolab  << endl;
 
 	exit(0);
       }
