@@ -811,7 +811,9 @@ template<class TREE, class TS,class BUD>
 
   BoundingBox bb;
   //  FindCfBoundingBox<TS,BUD> fb(true);
-  FindCfBoundingBox<TS,BUD> fb(false);
+  FindCfBoundingBox<TS,BUD> fb(false);  //this means that foliage == false
+                                       //i.e. also TreeSegments without needles
+                                       //are considered for BoundingBox
 
   for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
     bb = Accumulate(*vtree[k], bb, fb);
