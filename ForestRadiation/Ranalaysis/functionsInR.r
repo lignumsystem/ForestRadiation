@@ -24,6 +24,12 @@ yvalue<- function(a,b,box){
 
 }
 
+# Calculate the Coefficient of Variation
+
+calculateCV<-function(Xrad){
+     (sd(Xrad))/mean(Xrad)
+}
+
 # calculating the index in this code
 index_summary<- function(Qvox,Qacc)
 {

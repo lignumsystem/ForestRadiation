@@ -34,6 +34,7 @@ relHgtM1 = relativeHeight(meanDataVoxBox$V4[meanDataVoxBox$V1 == vox])
 total_num1= index_summary(meanDataVoxBox$V7[meanDataVoxBox$V1 == vox],accurateDataVoxBox[7]) 
 total_num1=specify_decimal(total_num1,3)
 
+
 #For Directional STAR values
 relDevD1 = relativeDeviation(dirDataVoxBox$V7[dirDataVoxBox$V1 == vox],accurateDataVoxBox[7])
 relHgtD1 = relativeHeight(dirDataVoxBox$V4[dirDataVoxBox$V1 == vox])
@@ -44,6 +45,7 @@ relDevBDM1 = relativeDeviation(meanBDYes$V7[meanBDYes$V1 == vox],accurateDataVox
 relHgtBDM1 = relativeHeight(meanBDYes$V4[meanBDYes$V1 == vox])
 total_num3= index_summary(meanBDYes$V7[meanBDYes$V1 == vox],accurateDataVoxBox[7]) 
 total_num3=specify_decimal(total_num3,3)
+
 
 
 
