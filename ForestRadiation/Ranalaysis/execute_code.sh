@@ -4,7 +4,7 @@
 den=(150) # This is where the densities of the tress are given
 seed=(787237  536199  1676779  546327  235663 787231 536197 1576775 446327 135663) 
 numP=(3)
-vox=(0.1 0.2 0.3 0.4)
+vox=(0.1  0.2 0.3 0.4) #Please leave some space between 0.1 and 0.2 since it acts weird otherwise,
 dLen=${#den[@]} #Length of the density
 sLen=${#seed[@]} # Length of the seeds list
 numPLen=${#numP[@]}
@@ -26,7 +26,7 @@ for (( i=0; i<${dLen}; i++ ));
     mkdir Resultapp/${den[$i]}/numParts_${numP[$l]}/MeanStar/BoxDirYes  # Make changes to the path if needed here.
      echo ${vox[$k]}
      echo -----------------------------------------
-     ./lig-radiation -generateLocations ${den[$i]} -manyTrees manytrees.txt -resultfile Resultapp/${den[$i]}/numParts_${numP[$l]}/MeanStar/BoxDirYes/boxdirYmean_${seed[$j]}_den${den[$i]}.dat -seed ${seed[$j]} -radMethod 3  -treeDist 0.3 -X 20 -Y 20 -Z 10 -correctSTAR -boxDirEffect  -Voxboxside ${vox[$k]} -numParts ${numP[$l]} -zeroWoodyRadius -appendMode
+     ./lig-radiation -generateLocations ${den[$i]} -manyTrees manytrees.txt -resultfile Resultapp/${den[$i]}/numParts_${numP[$l]}/MeanStar/BoxDirYes/boxdirYmean_${seed[$j]}_den${den[$i]}.dat -seed ${seed[$j]} -radMethod 3  -treeDist 0.3 -X 20 -Y 20 -Z 10 -correctSTAR -boxDirEffect  -Voxboxside ${vox[$k]} -numParts ${numP[$l]}  -appendMode
  cp runfile.dat Resultapp/${den[$i]}/runfile_${seed[$j]}_${den[$i]}_BDY_${vox[$k]}.dat
 
     
