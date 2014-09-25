@@ -162,7 +162,7 @@ public:
 
 
         if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) {
-            LGMdouble k;
+	  LGMdouble k = 0.14;   //= 0.14 is to avoid uninitialized warning message
             //**********Additional Code for the vectors of directional Star Values***************************************************
             vector<LGMdouble>  kdir(7);
             vector<LGMdouble>  angle(7);
