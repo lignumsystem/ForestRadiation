@@ -288,6 +288,10 @@ template<class TREE, class TS, class BUD>
 	getline(mtf,treef);
 	treef.erase(std::remove(treef.begin(), treef.end(), ' '),
 		    treef.end());                //strip dangerous spaces from file name
+
+	if((int)treef.size() == 0)       //Check in case empty rows are read
+	    break;
+
 	if(mtf.eof() == true)
 	  break;
 	tree_files.push_back(treef);
@@ -468,6 +472,7 @@ template<class TREE, class TS,class BUD>
 	LGMdouble num_trees = (double)tree_files.size();
 	//trees are taken randomly => all trees are used in the same proportion
 	unsigned int tree = (unsigned int) (ran3(&ran3_seed)* num_trees);
+
 	createTrees_reader.readXMLToTree(*t, tree_files[tree]);
 	if(zero_woody_radius) {
 	  ForEach(*t,ZeroWoodyRadius());
