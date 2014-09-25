@@ -2,8 +2,8 @@
 
 numparts = c(3)
 
-rootpath = "/home/likewise-open/IN/gopalkri/Developer/core-model/ForestRadiation/Resultapp"
-
+#Please change the paths in read_files.r suitable to your machine along with the seeds and the tree density.
+#That will be the main code where all the paths are changed.
 for(counter in numparts)
 {
    commandArgs <- function() counter 

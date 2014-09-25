@@ -4,7 +4,7 @@
 den=(150) # This is where the densities of the tress are given
 seed=(787237  536199  1676779  546327  235663 787231 536197 1576775 446327 135663) 
 numP=(3)
-vox=(0.1  0.2 0.3 0.4)
+vox=(0.1 0.2 0.3 0.4)
 dLen=${#den[@]} #Length of the density
 sLen=${#seed[@]} # Length of the seeds list
 numPLen=${#numP[@]}
