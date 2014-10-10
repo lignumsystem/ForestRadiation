@@ -151,109 +151,118 @@ private:
 };
 
 class AccumulateOpticalDepth{
-public:
-    AccumulateOpticalDepth(LGMdouble side, LGMdouble a, LGMdouble b, Point loc, ParametricCurve kk,
-                           bool d_e, bool wd, bool cs, LGMdouble st,bool calculateDirectionalStar) :
-        box_side_length(side), par_a(a), par_b(b), seg_loc(loc), K(kk), dir_effect(d_e), wood(wd), 
-	  constant_star(st),correct_star(cs), calculateDirectionalStar(calculateDirectionalStar)
-	  {box_volume = pow(box_side_length,3.0);}
-    double operator()(double o_d,VoxelMovement& vm){
-        //    if((vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) && vm.n_segs_real > 0.0) {
+ public:
+ AccumulateOpticalDepth(LGMdouble side, LGMdouble a, LGMdouble b, Point loc, ParametricCurve kk,
+			bool d_e, bool wd, bool cs, LGMdouble st,bool calculateDirectionalStar) :
+  box_side_length(side), par_a(a), par_b(b), seg_loc(loc), K(kk), dir_effect(d_e), wood(wd), 
+    constant_star(st),correct_star(cs), calculateDirectionalStar(calculateDirectionalStar)
+  {box_volume = pow(box_side_length,3.0);}
+  double operator()(double o_d,VoxelMovement& vm){
+    //    if((vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) && vm.n_segs_real > 0.0) {
 
 
-        if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) {
-	  LGMdouble k = 0.14;   //= 0.14 is to avoid uninitialized warning message
-            //**********Additional Code for the vectors of directional Star Values***************************************************
-            vector<LGMdouble>  kdir(7);
-            vector<LGMdouble>  angle(7);
-            int count = 0;
-            // Code added by KV this is the angle of inclination used for interpolation.
-            for(double phi=0;phi<=PI_VALUE/2.0; phi+=PI_VALUE/12.0){
-                angle[count] = phi;
-                count+=1;
-            }
-            std::vector<LGMdouble>::iterator low,up;
-            if(calculateDirectionalStar){
-                kdir = vm.starDir;
-            }
-            else{
-                if(constant_star > 0.0)
-                    k = constant_star;
-                else
-                    k = vm.STAR_mean;
-            }
+    if(vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) {
+      LGMdouble k = 0.14;   //= 0.14 is to avoid uninitialized warning message
+      //**********Additional Code for the vectors of directional Star Values***************************************************
+      vector<LGMdouble>  kdir(7);
+      vector<LGMdouble>  angle(7);
+      int count = 0;
+      // Code added by KV this is the angle of inclination used for interpolation.
+      for(double phi=0;phi<=PI_VALUE/2.0; phi+=PI_VALUE/12.0){
+	angle[count] = phi;
+	count+=1;
+      }
 
-            if(correct_star) {
-                k = max(0.0,-0.014+1.056*k);
-            }
-           //****************************************************************************************************************
-            //NOTE: here transformation STAR_eq --> STAR; documented in
-            //~/Riston-D/E/LIGNUM/Light/summer-09-test/STAR-vs-STAR_eq.pdf
+      if(calculateDirectionalStar){
+	kdir = vm.starDir;
+      }
+      else{
+	if(constant_star > 0.0)
+	  k = constant_star;
+	else
+	  k = vm.STAR_mean;
+      }
 
-            //Effect of hit angle to the mean direction of shoots in the voxel box, documented in
-            //~/Riston-D/E/LIGNUM/Light/Article/vs-STARmean-all.pdf and
-            //~/Riston-D/E/LIGNUM/Light/Article/vs-STARmean-approximation.pdf
-            PositionVector mean_dir = vm.mean_direction;
-            LGMdouble mean_dir_length = mean_dir.length();
-            LGMdouble effect = 1.0;
-            if(dir_effect) {
-                if(mean_dir_length > 0.0){
-                    mean_dir.normalize();
-                    LGMdouble inclination  =  PI_DIV_2 - acos(fabs(Dot(mean_dir,beam_dir)));
-                    effect =  K(inclination)/K(0.7);
-                }
-            }
-            //this scales the effect depending on how parallel the segments are
-            /*       if(mean_dir_length > 0.0) { */
-            /* 	mean_dir.normalize(); */
-            /* 	LGMdouble inclination  =  PI_DIV_2 - acos(fabs(Dot(mean_dir,beam_dir))); */
-            /* 	//	LGMdouble effect  = 1.13 - 0.24*pow(inclination,2.0); */
-            /* 	//	LGMdouble effect = 1.2-0.3*inclination*(inclination+0.3); */
-            /* 	LGMdouble u =  mean_dir_length/vm.n_segs_real; */
-            /* 	effect = 1.0 - u + u * K(inclination)/K(0.7); */
-            /* 	cout << " u " << u << endl; */
-            /*       } */
+      if(correct_star) {
+	k = max(0.0,-0.014+1.056*k);
+      }
+      //****************************************************************************************************************
+      //NOTE: here transformation STAR_eq --> STAR; documented in
+      //~/Riston-D/E/LIGNUM/Light/summer-09-test/STAR-vs-STAR_eq.pdf
 
-            //Code to evaluate k if calculateDirectionalStar is true then first search the lower bound then obtain the index by sebtracting the
-            //beginning. Then add one to the lowest (or rather closest lower bound) index to get the upper bound index between which we need to
-            //interpolate the new value.
+      //Effect of hit angle to the mean direction of shoots in the voxel box, documented in
+      //~/Riston-D/E/LIGNUM/Light/Article/vs-STARmean-all.pdf and
+      //~/Riston-D/E/LIGNUM/Light/Article/vs-STARmean-approximation.pdf
+      PositionVector mean_dir = vm.mean_direction;
+      LGMdouble mean_dir_length = mean_dir.length();
+      LGMdouble effect = 1.0;
+      if(dir_effect) {
+	if(mean_dir_length > 0.0){
+	  mean_dir.normalize();
+	  LGMdouble inclination  =  PI_DIV_2 - acos(fabs(Dot(mean_dir,beam_dir)));
+	  effect =  K(inclination)/K(0.7);
+	}
+      }
+      //this scales the effect depending on how parallel the segments are
+      /*       if(mean_dir_length > 0.0) { */
+      /* 	mean_dir.normalize(); */
+      /* 	LGMdouble inclination  =  PI_DIV_2 - acos(fabs(Dot(mean_dir,beam_dir))); */
+      /* 	//	LGMdouble effect  = 1.13 - 0.24*pow(inclination,2.0); */
+      /* 	//	LGMdouble effect = 1.2-0.3*inclination*(inclination+0.3); */
+      /* 	LGMdouble u =  mean_dir_length/vm.n_segs_real; */
+      /* 	effect = 1.0 - u + u * K(inclination)/K(0.7); */
+      /* 	cout << " u " << u << endl; */
+      /*       } */
 
-            if(calculateDirectionalStar){
-                low  = std::lower_bound(angle.begin(),angle.end(),beam_dir.getZ());
-                up   = std::upper_bound(angle.begin(),angle.end(),beam_dir.getZ());
-                LGMdouble lowerIndex = low - angle.begin();
-                LGMdouble upperIndex = lowerIndex+1;
-                k = kdir[lowerIndex] +(kdir[upperIndex]-kdir[lowerIndex])*((beam_dir.getZ()-angle[lowerIndex])/(angle[upperIndex]-angle[lowerIndex]));
-                cout.precision(15);
-                o_d += effect * k * vm.af * vm.l / box_volume;
-
-            }
-            else{
-                o_d += effect * k * vm.af * vm.l / box_volume;
-            }
-            if(wood) {
-                //Mean projection area of surface of a circular cylinder (excluding end disks)
-                // is 1/4 of its area
-                o_d += 0.25 * vm.wood_area * vm.l / box_volume;
-            }
-            cout.precision(15);
-        }
-        return o_d;
+      //Code to evaluate k if calculateDirectionalStar is true then first search the lower bound then obtain the index by sebtracting the
+      //beginning. Then add one to the lowest (or rather closest lower bound) index to get the upper bound index between which we need to
+      //interpolate the new value.
+      //Corrected by Risto 10.10.2014: sin(angle) and angle were compared. Now the calculation are made with angles.
+      //Changes also in finding indexes
+      if(calculateDirectionalStar){
+	LGMdouble dir_angle = asin(beam_dir.getZ());
+	std::vector<LGMdouble>::iterator up; //Up points to first element of angle which compares greater than dir_angle.
+	up   = std::upper_bound(angle.begin(),angle.end(),dir_angle);
+	if((up - angle.begin()) < 1) {
+	  k = kdir[0];
+	}
+	else if((up - angle.begin()) > 6) {
+	  k = kdir[6];
+	}
+	else {
+	  int upperIndex = up - angle.begin();
+	  int lowerIndex = upperIndex - 1;
+	  k = kdir[lowerIndex] +(kdir[upperIndex]-kdir[lowerIndex])*
+	    ((dir_angle-angle[lowerIndex])/(angle[upperIndex]-angle[lowerIndex]));
+	  o_d += effect * k * vm.af * vm.l / box_volume;
+	}
+      }
+      else{
+	o_d += effect * k * vm.af * vm.l / box_volume;
+      }
+      if(wood) {
+	//Mean projection area of surface of a circular cylinder (excluding end disks)
+	// is 1/4 of its area
+	o_d += 0.25 * vm.wood_area * vm.l / box_volume;
+      }
+      cout.precision(15);
     }
+    return o_d;
+  }
 
-    //This is to take care of the direction of the beam of radiation
-    PositionVector beam_dir;
-private:
-    LGMdouble box_side_length;
-    LGMdouble box_volume;
-    LGMdouble par_a, par_b;
-    Point seg_loc;   //location of segment
-    ParametricCurve K;
-    bool dir_effect;                  // If direction effect of segments in box considered
-    bool wood;                       //  If woody parts are considered
-    LGMdouble constant_star;        //   If this > 0, k = constant_star else k = star_mean
-    bool correct_star;             //    If star_eq -> star correction is done
-    bool calculateDirectionalStar;//     Directional Star values are required this is used
+  //This is to take care of the direction of the beam of radiation
+  PositionVector beam_dir;
+ private:
+  LGMdouble box_side_length;
+  LGMdouble box_volume;
+  LGMdouble par_a, par_b;
+  Point seg_loc;   //location of segment
+  ParametricCurve K;
+  bool dir_effect;                  // If direction effect of segments in box considered
+  bool wood;                       //  If woody parts are considered
+  LGMdouble constant_star;        //   If this > 0, k = constant_star else k = star_mean
+  bool correct_star;             //    If star_eq -> star correction is done
+  bool calculateDirectionalStar;//     Directional Star values are required this is used
 };
 
 
