@@ -1045,7 +1045,7 @@ template<class TREE, class TS,class BUD>
     ForEach(*t,ZeroWoodyRadius());
   }
 
-  //2) First and only tree in vector vtree
+   //2) First and only tree in vector vtree
 
   vtree.insert(vtree.begin(),t);
   no_trees = 1;
@@ -1129,6 +1129,9 @@ template<class TREE, class TS,class BUD>
     rtf.setQmax(GetFirmament(*t).diffuseBallSensor());
     ForEach(*t, rtf);
   }
+
+  cout << "Calculate radiation for " << input_tree_file << " done!" << endl;
+  exit(0);
  
 }
 
