@@ -162,7 +162,7 @@ class AccumulateOpticalDepth{
     //shoot and light beam directions. These values are in 
     //~/Riston-D/E/Hankkeet/LIGNUM/Erillishankkeet/Light/Radiation-article/mean-star-effect.dat". It has been
     //calculated in ~/Riston-D/E/Hankkeet/LIGNUM/Lignum-Forest/R-files/STAR.R
-    Parametriccurve dir_effect_function(
+    ParametricCurve dir_effect_function(
 "0 1.12146058341187 0.0785398163397448 1.14677595593143 0.15707963267949 1.13023014058558 0.235619449019234 1.11340055974152 "
 "0.314159265358979 1.09637333348913 0.392699081698724 1.07916314315553 0.471238898038469 1.06142618194546 "
 "0.549778714378214 1.04009823371317 0.628318530717959 1.01675794494258 0.706858347057703 0.991602507644704 "
