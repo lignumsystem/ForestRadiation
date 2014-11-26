@@ -156,7 +156,22 @@ class AccumulateOpticalDepth{
 			bool d_e, bool wd, bool cs, LGMdouble st,bool calculateDirectionalStar) :
   box_side_length(side), par_a(a), par_b(b), seg_loc(loc), K(kk), dir_effect(d_e), wood(wd), 
     constant_star(st),correct_star(cs), calculateDirectionalStar(calculateDirectionalStar)
-  {box_volume = pow(box_side_length,3.0);}
+  {box_volume = pow(box_side_length,3.0);
+    int dummy = 0.0;
+    //This function describes how much STAR deviates from mean STAR as a function of acute angle between
+    //shoot and light beam directions. These values are in 
+    //~/Riston-D/E/Hankkeet/LIGNUM/Erillishankkeet/Light/Radiation-article/mean-star-effect.dat". It has been
+    //calculated in ~/Riston-D/E/Hankkeet/LIGNUM/Lignum-Forest/R-files/STAR.R
+    Parametriccurve dir_effect_function(
+"0 1.12146058341187 0.0785398163397448 1.14677595593143 0.15707963267949 1.13023014058558 0.235619449019234 1.11340055974152 "
+"0.314159265358979 1.09637333348913 0.392699081698724 1.07916314315553 0.471238898038469 1.06142618194546 "
+"0.549778714378214 1.04009823371317 0.628318530717959 1.01675794494258 0.706858347057703 0.991602507644704 "
+"0.785398163397448 0.964551240973513 0.863937979737193 0.935664954902298 0.942477796076938 0.904595654266902 "
+"1.02101761241668 0.871177309266682 1.09955742875643 0.83519042079002 1.17809724509617 0.795193529091556 "
+"1.25663706143592 0.754853265395472 1.33517687777566 0.714203244987155 1.41371669411541 0.673172332712971 "
+"1.49225651045515 0.631674241882798 1.5707963267949 0.511637960445245", dummy);
+}
+
   double operator()(double o_d,VoxelMovement& vm){
     //    if((vm.af > R_EPSILON ||(wood && vm.wood_area > R_EPSILON)) && vm.n_segs_real > 0.0) {
 
@@ -200,7 +215,8 @@ class AccumulateOpticalDepth{
 	if(mean_dir_length > 0.0){
 	  mean_dir.normalize();
 	  LGMdouble inclination  =  PI_DIV_2 - acos(fabs(Dot(mean_dir,beam_dir)));
-	  effect =  K(inclination)/K(0.7);
+	  //	  effect =  K(inclination)/K(0.7);
+	  effect = dir_effect_function(inclination);
 	}
       }
       //this scales the effect depending on how parallel the segments are
@@ -263,6 +279,7 @@ class AccumulateOpticalDepth{
   LGMdouble constant_star;        //   If this > 0, k = constant_star else k = star_mean
   bool correct_star;             //    If star_eq -> star correction is done
   bool calculateDirectionalStar;//     Directional Star values are required this is used
+  ParametricCurve dir_effect_function;
 };
 
 
