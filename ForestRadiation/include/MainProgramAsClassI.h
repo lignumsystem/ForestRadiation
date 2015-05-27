@@ -31,7 +31,7 @@ template<class TREE, class TS, class BUD>
 {
   cout << "Usage:  ./lig-radiation [-numParts <parts>]  [-treeDist <dist>]" <<endl;
   cout << "[-xml <filename>] [-writeVoxels] [-noWoodVoxel]" <<endl;
-  cout << "[-treeFile <filename>] [-generateLocations  <num>] [-treeLocations <file>]" << endl;
+  cout << " [-generateLocations  <num>] [-treeLocations <file>]" << endl;
   cout << "[-resultfile <file>] [-Voxboxside <value>]" << endl;
   cout << "[-dumpSelf] [-inputTree <filename>] [-kBorderConifer <value>] [-GapRadius <value>]" << endl;
   cout << "[-targetTreeRad <value>] [-evaluateLAI] [-radMethod <num>] [-calculateSTAR <num>] [-calculateDirectionalStar] " << endl;
@@ -39,6 +39,7 @@ template<class TREE, class TS, class BUD>
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
   cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI] [-zeroWoodyRadius]" << endl;
+  cout << "[-getTreesPosPeriodical <file>] [-onlyPositions <file>]" << endl << endl;
   cout << "-generateLocations <num>  In this case <num> trees will be generated to random locations. If this" << endl;
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
@@ -80,7 +81,15 @@ template<class TREE, class TS, class BUD>
   cout << "-getTreesPos <file>    Reads trees (xml files) and their positions from file" << endl;
   cout << "-radiusOnly <r>        Only trees at max distance r m are used in the calculation." << endl;
   cout << "-X, -Y, -Z <value>     X, y, z sidelengths of VoxelSpace (defaults are 10 m, 10 m, 3 m)" << endl;
-  cout << "-zeroWoodyRadius       The woody radii in all shading trees set to ca. zero: SetValue(*ts,LGAR, 0.0001);" << endl; 
+  cout << "-zeroWoodyRadius       The woody radii in all shading trees set to ca. zero: SetValue(*ts,LGAR, 0.0001);" << endl;
+  cout << "-getTreesPosPeriodical <file>      Reads trees (xml files) and their positions from file but creates" << endl;
+  cout << "                                   also the same trees around the plot in the periodical boundary" << endl;
+  cout << "                                   condition way. The corner coordinates of the plot are at the" << endl;
+  cout << "                                   beginning of the file." << endl;
+  cout << "-onlyPositions <file>  Calculates transmission only for postions (x,y, height) given in the file" << endl;
+  cout << "                       The transmission is calculated for zenith angles 7.5, 22.5, 37.5, 52.5, 67.5" << endl;
+  cout << "                       and 82.5 degrees, for each zenith angle calculation is made with 30 degree" << endl;
+  cout << "                       intervals in the azimuth. The results are written on the console." << endl;
   cout  << endl;
 }
 
@@ -312,6 +321,15 @@ template<class TREE, class TS, class BUD>
     trees_pos_file = clarg;
   }
 
+
+  trees_from_file_periodical = false;
+  clarg.clear();
+  if (ParseCommandLine(argc,argv,"-getTreesPosPeriodical", clarg)) {
+    trees_from_file_periodical = true;
+    trees_pos_periodical_file = clarg;
+  }
+
+
   radius_only = false;
   clarg.clear();
   if (ParseCommandLine(argc,argv,"-radiusOnly", clarg)) {
@@ -327,6 +345,15 @@ template<class TREE, class TS, class BUD>
   if(CheckCommandLine(argc,argv,"-zeroWoodyRadius")) {
     zero_woody_radius = true;
   }
+
+
+  only_positions = false;
+  clarg.clear();
+  if (ParseCommandLine(argc,argv,"-onlyPositions", clarg)) {
+     only_positions = true;
+     only_positions_file = clarg;
+  }
+
 
   if (verbose){
     cout << "parseCommandLine end" <<endl;
@@ -547,7 +574,7 @@ template<class TREE, class TS,class BUD>
 
 /*       cout << "After " << GetPoint(*t); */
 
-      Axis<TS,BUD>& ax = GetAxis(*t);
+//      Axis<TS,BUD>& ax = GetAxis(*t);
 /*       TreeSegment<TS,BUD>* ts = GetFirstTreeSegment(ax); */
 /*       cout << "my_point " << GetPoint(*ts); */
 
@@ -700,8 +727,8 @@ template<class TREE, class TS,class BUD>
 
   Point ll = bb.getMin();
   Point ur = bb.getMax();
-  cout << ll;
-  cout << ur;
+  cout << "Lower left  " << ll;
+  cout << "Upper right " << ur;
 
   if(!voxel_tree) {   //In the case of voxeltree it is dumped already in initializeVoxelSpace()
     vs->resize(ll, ur);
@@ -1017,13 +1044,8 @@ template<class TREE, class TS,class BUD>
     ForEach(*t, rtf);
   }
  
-     exit(0);
-
    }
 }  //end of calculateRadiation()  { ..
-
-
-
 
 
 //===================================================================
@@ -1135,9 +1157,111 @@ template<class TREE, class TS,class BUD>
  
 }
 
-/* #undef HIT_THE_FOLIAGE */
-/* #undef NO_HIT */
-/* #undef HIT_THE_WOOD */
+//======================================================================================================
+// calculateRadiationToPoint
+
+// Calculates transmission only for postions (x,y, height) given in the file with command line option
+// -onlyPositions <file>.
+// The transmission is calculated for zenith angles 7.5, 22.5, 37.5, 52.5, 67.5 and 82.5 degrees.
+// For each zenith angle calculation is made with 30 degree intervals in the azimuth (12 values).
+// The results are written on the console.
+//=======================================================================================================
+
+#define HIT_THE_WOOD -1
+
+template<class TREE, class TS,class BUD>
+  void MainProgramAsClass<TREE, TS,BUD>::calculateRadiationToPoint()
+{
+
+  //1. Read the positions from a file
+
+  ifstream opf(only_positions_file.c_str());
+  if(!opf) {
+    cout << "Could not open tree and position input file " << only_positions_file << endl;
+    exit(0);
+  }
+
+  vector<Point> points;
+  string line;
+  getline(opf,line); //Comment line
+
+  while (opf.eof() == false)
+    {
+      getline(opf,line);
+
+      if(opf.eof() == true)
+        break;
+
+      LGMdouble x, y, z;
+      istringstream ist(line);
+      ist >> x >> y >> z;
+      points.push_back(Point(x,y,z));
+    }
+
+  int number_of_points = (int)points.size();
+
+  //2. The directions: zenith angles 7.5 22.5 37.5 52.5 67.5 82.5 degrees
+  //                   azimuth angles 0 30 60 90 120 150 180 210 240 270 300 330 degrees
+
+  vector<vector<LGMdouble> > directions;
+  vector<LGMdouble> z_angles;
+  for(LGMdouble zen = 7.5*PI_VALUE/180.0; zen < PI_VALUE/2.0; zen += 15.0*PI_VALUE/180.0) {
+    z_angles.push_back(180.0*zen/PI_VALUE);
+    for(LGMdouble az = 0.0; az < 2.0*PI_VALUE; az += PI_VALUE/6.0) {
+      LGMdouble z = cos(zen);
+      LGMdouble x = sin(zen)*cos(az);
+      LGMdouble y = sin(zen)*sin(az);
+      vector<LGMdouble> v(3);
+      v[0] = x; v[1] = y; v[2] = z;
+      directions.push_back(v);
+    }
+  }
+  int no_directions = (int)directions.size();
+
+  //3. Calculate transmission to all points and write out results
+  K = ParametricCurve("K.fun");  //K is data member of MainProgramAsClass
+  for(int i = 0; i < number_of_points; i++) {
+    vector<LGMdouble> tulos(no_directions);
+    Point pin = points[i];
+    ShadingEffectOfCfTreeSegmentToPoint<TS,BUD> setp(pin,directions,K,tulos);
+
+    for(int k = 0; k < no_trees; k++) {
+      TREE* t = vtree[k];
+      ForEach(*t,setp);
+    }
+
+    //ShadingEffectOfCfTreeSegmentToPoint calculates optical depth
+
+    for(int k = 0; k < no_directions; k++) {
+      if(tulos[k] == HIT_THE_WOOD) {
+	tulos[k] = 0.0;
+      }
+      else {
+	if(tulos[k] < 20.0) {
+	  tulos[k] = exp(-tulos[k]);
+	}
+	else {
+	  tulos[k] = 0.0;
+	}
+      }
+    }
+
+    cout << "Position (" << pin.getX() << ", " << pin.getY() << ", " << pin.getZ() << ")" << endl;
+    int count = 0;
+    for(int izen = 0; izen < 6; izen++) {
+      cout << z_angles[izen] << ": ";
+      for(int iaz = 0; iaz < 12; iaz++) {
+	cout << tulos[count] << " ";
+	count++;
+      }
+      cout << endl;
+    }
+   }  // for(int i = 0; i < ...
+
+}  //end of calculateRadiationToPoint()  { ..
+
+#undef HIT_THE_WOOD
+
 
 class SetSf {
  public:
@@ -1291,6 +1415,100 @@ template<class TREE, class TS, class BUD>
 	     << y << ")" << endl;
       }
     }
+  cout << "File " << trees_pos_file << " contained " << no_trees << " trees." << endl;
 }
+
+//This reads tree positions and xml files from a file (as getTreesAndPositions)
+//but also creates trees outside the plot according to periodical boundary
+//condition.
+//The coordinates of lower left and upper right  corners of the plot are read from the
+//first line
+
+//NOTE: It is not checked if the positions of trees are in the plot
+
+template<class TREE, class TS, class BUD>
+  void MainProgramAsClass<TREE,TS,BUD>::getTreesAndPositionsPeriodicalBoundary() {  
+  ifstream tpf(trees_pos_periodical_file.c_str());
+  if(!tpf) {
+    cout << "Could not open tree and position input file " << trees_pos_periodical_file << endl;
+    exit(0);
+  }
+
+  string line;
+  getline(tpf,line); //Comment line
+  getline(tpf,line); //Second line
+
+  istringstream ist(line);
+  LGMdouble x_ur, y_ur, x_ll, y_ll;
+  ist >> x_ll >> y_ll >> x_ur >> y_ur;  //Coordinates of corners
+  getline(tpf,line); //Comment line
+
+  no_trees= 0;
+  while (tpf.eof() == false)
+    {
+      getline(tpf,line);
+
+      if(tpf.eof() == true)
+        break;
+
+      LGMdouble x, y;
+      string xml_file;
+      istringstream ist(line);
+      ist >> x >> y >> xml_file;
+      
+      XMLDomTreeReader<ScotsPineSegment,ScotsPineBud> reader;
+
+      TREE* t = new TREE(Point(0.0,0.0,0.0),PositionVector(0,0,1),
+			 "sf.fun","fapical.fun","fgo.fun",
+			 "fsapwdown.fun","faf.fun","fna.fun", "fwd.fun",
+			 "flr.fun");
+
+      //Tree itself
+      reader.readXMLToTree(*t, xml_file);
+      if(zero_woody_radius) {
+	ForEach(*t,ZeroWoodyRadius());
+      }
+
+      MoveTree<ScotsPineSegment,ScotsPineBud>
+	move(Point(x,y,0.0)-GetPoint(*t),*t);
+      ForEach(*t, move);
+      vtree.push_back(t);
+      no_trees++;
+      if (verbose){
+	cout << "Tree " << xml_file << " at (" << x << ", "
+	     << y << ")" << endl;
+      }
+
+      //Now translations of the same tree according to periodical boundary condition
+
+      LGMdouble x_tr = x_ur - x_ll;
+      LGMdouble y_tr = y_ur - y_ll;
+      vector<pair<LGMdouble,LGMdouble> > tr = translateCoordinates(x, y, x_tr, y_tr);
+      for(int i = 0; i < 8; i++) {
+	t = new TREE(Point(0.0,0.0,0.0),PositionVector(0,0,1),
+		     "sf.fun","fapical.fun","fgo.fun",
+		     "fsapwdown.fun","faf.fun","fna.fun", "fwd.fun",
+		     "flr.fun");
+
+	reader.readXMLToTree(*t, xml_file);
+	if(zero_woody_radius) {
+	  ForEach(*t,ZeroWoodyRadius());
+	}
+
+	MoveTree<ScotsPineSegment,ScotsPineBud>
+	  move(Point(tr[i].first,tr[i].second,0.0)-GetPoint(*t),*t);
+	ForEach(*t, move);
+	vtree.push_back(t);
+	no_trees++;
+	if (verbose){
+	  cout << "Tree " << xml_file << " at (" << tr[i].first << ", "
+	       << tr[i].second << ")" << endl;
+	}
+      }
+    }  //end while - loop
+  cout << no_trees << " trees were created from file " << trees_pos_periodical_file << "." << endl;
+}
+
+
 
 #endif

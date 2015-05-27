@@ -42,6 +42,9 @@ int main(int argc, char** argv)
     if(main_program.getTreesFromFile()) {
       main_program.getTreesAndPositions();
     }
+    else if(main_program.getTreesFromFilePeriodical()) {
+      main_program.getTreesAndPositionsPeriodicalBoundary();
+    }
     else {
       main_program.setTreeLocations();
       main_program.createTrees();  //to locations set above
@@ -51,12 +54,17 @@ int main(int argc, char** argv)
 	exit(0);
     }
   }
+  if(!main_program.getOnlyPositions()) {
+    main_program.initializeVoxelSpace();
 
-  main_program.initializeVoxelSpace();
+    main_program.setVoxelSpaceAndBorderForest();
 
-  main_program.setVoxelSpaceAndBorderForest();
-  // main_program.createTargetTree();
-  main_program.calculateRadiation();
+    // main_program.createTargetTree();
 
+    main_program.calculateRadiation();
+  }
+  else {
+    main_program.calculateRadiationToPoint();
+  }
   exit(0);
 }

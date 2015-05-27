@@ -317,11 +317,14 @@ TreeCompartment<TS,BUD>* EvaluateRadiationForCfTreeSegment_3<TS,BUD>::operator()
                 if(optical_depth < 0.0)
                     optical_depth = 0.0;
             }
-            if(optical_depth > R_EPSILON)
-                if(optical_depth < 20.0)
+            if(optical_depth > R_EPSILON){
+	      if(optical_depth < 20.0) {
                     transmission_voxel = exp(-optical_depth);
-                else
+	      }
+	      else {
                     transmission_voxel = 0.0;
+	      }
+	    }
             Iop *= transmission_voxel;
 
             //then attenuation in the BorderForest
@@ -382,6 +385,98 @@ TreeCompartment<TS,BUD>* EvaluateRadiationForCfTreeSegment_3<TS,BUD>::operator()
     return tc;
 }  //end of EvaluateRadiationForCfTreeSegment()  { ...
 
+
+
+//=======================================================================================================
+
+//This functor is a modification of ShadingEffectOfCfTreeSegment_1<TS,BUD> and calculates transmission
+//through a conifer segment to a point in space from different directions.
+//The point and the directions are data members of this functor.
+
+template <class TS,class BUD>
+  TreeCompartment<TS,BUD>* ShadingEffectOfCfTreeSegmentToPoint<TS,BUD>::operator()(TreeCompartment<TS,BUD>* tc)const {
+
+  if (CfTreeSegment<TS,BUD>* ts = dynamic_cast<CfTreeSegment<TS,BUD>*>(tc)) {
+
+    //Foliage density: Foliage area divided by volume. Perhaps a good idea to
+    //implement it as GetValue?
+    LGMdouble af = GetValue(*ts,LGAAf);
+    LGMdouble fol_dens;
+    //NOTE: foliage density for cylinder containing also wood
+    if(af > R_EPSILON) {
+      //      fol_dens = af/(PI_VALUE*(pow(GetValue(*ts,LGARf),2.0)-pow(GetValue(*ts,LGAR),2.0))
+      fol_dens = af/(PI_VALUE*(pow(GetValue(*ts,LGARf),2.0))*GetValue(*ts,LGAL));
+    }
+    else {
+      fol_dens = 0.0;
+    }
+
+    for(int i = 0; i < number_of_directions; i++) {
+      //If the sector is blocked by another shoot
+      //do not make computations, check the next sector instead
+      if (S[i] == HIT_THE_WOOD) {
+	continue;
+      }
+      //The radiation and its direction of sector i. We need the direction
+      //            firmament.diffuseRegionRadiationSum(i,radiation_direction);
+
+      vector<double> radiation_direction(3);
+      radiation_direction = directions[i];
+
+      int result = NO_HIT;
+      double distance = 0.0;
+
+
+      Point r_0 = p0;
+
+      //If foliage, wood radius = 0
+      if(fol_dens == 0.0) {
+	LGMdouble rw = GetValue(*ts, LGAR);
+	LGMdouble rf = rw;
+	result = CylinderBeamShading(r_0,
+				     radiation_direction,
+				     GetPoint(*ts),
+				     GetDirection(*ts),
+				     rf,
+				     rw,
+				     GetValue(*ts, LGAL),
+				     distance);
+      }
+      else {
+	LGMdouble rw = 0.0;
+	result = CylinderBeamShading(r_0,
+				     radiation_direction,
+				     GetPoint(*ts),
+				     GetDirection(*ts),
+				     GetValue(*ts, LGARf),
+				     rw,
+				     GetValue(*ts, LGAL),
+				     distance);
+      }
+
+      if (result == HIT_THE_WOOD){
+	//mark the sector blocked
+	S[i] = HIT_THE_WOOD;
+      }
+      else if (result == HIT_THE_FOLIAGE){
+	//otherwise compute Vp (the shadiness):
+	//1. compute the inclination of light beam and the segment
+	//1a. angle between segment and light beam
+	double a_dot_b = Dot(GetDirection(*ts),
+			     PositionVector(radiation_direction));
+	//1b.  inclination: Perpendicular  (PI_DIV_2) to segment minus
+	//angle between segment and light beam
+	double inclination = PI_DIV_2 - acos(fabs(a_dot_b));
+	//2.the light extinction coefficient according to inclination
+	double extinction = K(inclination);
+	//3.Vp = extinction*distance*foliage_density
+	double Vp = extinction *distance*fol_dens;
+	S[i] += Vp;
+      }
+    }  //for(int i = 0; i < number_of_directions; ...
+  }
+  return tc;
+}
 
 #undef HIT_THE_FOLIAGE
 #undef NO_HIT

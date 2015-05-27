@@ -282,6 +282,32 @@ class AccumulateOpticalDepth{
   ParametricCurve dir_effect_function;
 };
 
+//========================================================================================
+//This functor is a modification of ShadingEffectOfCfTreeSegment_1<TS,BUD> and calculates transmission
+//through a conifer segment to a point in space from different directions.
+//The point and the directions are data members of this functor.
+//The results are stored (and returned) in vector as optical depth S.
+
+template <class TS,class BUD>
+class ShadingEffectOfCfTreeSegmentToPoint {
+public:
+ ShadingEffectOfCfTreeSegmentToPoint(Point& p, vector<vector<LGMdouble> >& dir,
+				     ParametricCurve& K_in, vector<LGMdouble>& S_in)
+   : p0(p), directions(dir), K(K_in),S(S_in)
+  {
+    number_of_directions = (int)directions.size();
+    for(int i = 0; i < (int)directions.size(); i++)
+      {S[i] = 0.0;}
+  }
+    TreeCompartment<TS,BUD>*  operator()(TreeCompartment<TS,BUD>* tc)const;
+    vector<double>& getS(){return S;}
+private:
+    Point p0;
+    vector<vector<LGMdouble> >& directions;
+    const ParametricCurve& K;
+    vector<double>& S;           //Optical depth
+    int number_of_directions;
+};
 
 #undef HIT_THE_FOLIAGE
 #undef NO_HIT

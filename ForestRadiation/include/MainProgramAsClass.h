@@ -51,13 +51,17 @@ template <class TREE, class TS, class BUD>
     void setVoxelSpaceAndBorderForest();
     void calculateRadiation();
     void calculateRadiationOnlySelf();
+    void calculateRadiationToPoint();
     void getTreesAndPositions();
+    void getTreesAndPositionsPeriodicalBoundary();
     void createTargetTree();
     StandDescriptor<TREE>& getStand() {return stand;}
     bool getOnlySelf() {return only_self;}
     bool getWriteOnlyFile() {return write_only_file;}
     bool getManyTrees() {return many_trees;}
     bool getTreesFromFile() {return trees_from_file;}
+    bool getTreesFromFilePeriodical() {return trees_from_file_periodical;}
+    bool getOnlyPositions() {return only_positions;}
     void getThis(int& i) {
       i++;
     }
@@ -116,6 +120,12 @@ template <class TREE, class TS, class BUD>
     bool calculateDirectionalStar; //To calculate directional STAR values
     LGMdouble vs_x, vs_y, vs_z;    //Dimensions of the voxelspace
     bool zero_woody_radius;        //If woody radius of all shading trees is about 0
+    string trees_pos_periodical_file;
+    bool trees_from_file_periodical;
+    bool only_positions;
+    string only_positions_file;
+
+
 };
 
 
@@ -163,6 +173,23 @@ template <class TS,class BUD>
       return n;
     }
 };
+
+
+vector<pair<LGMdouble,LGMdouble> > translateCoordinates(const LGMdouble& x, const LGMdouble& y,
+					       const LGMdouble& tr_x, const LGMdouble& tr_y)
+{
+  vector<pair<LGMdouble,LGMdouble> > points(8);
+  points[0] = pair<LGMdouble,LGMdouble>(x, y + tr_y);
+  points[1] = pair<LGMdouble,LGMdouble>(x, y - tr_y);
+  points[2] = pair<LGMdouble,LGMdouble>(x + tr_x, y - tr_y);
+  points[3] = pair<LGMdouble,LGMdouble>(x + tr_x, y);
+  points[4] = pair<LGMdouble,LGMdouble>(x + tr_x, y + tr_y);
+  points[5] = pair<LGMdouble,LGMdouble>(x - tr_x, y - tr_y);
+  points[6] = pair<LGMdouble,LGMdouble>(x - tr_x, y);
+  points[7] = pair<LGMdouble,LGMdouble>(x - tr_x, y + tr_y);
+
+  return points;
+}
 
 
 #endif
