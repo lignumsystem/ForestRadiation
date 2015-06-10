@@ -124,8 +124,8 @@ template <class TREE, class TS, class BUD>
     bool trees_from_file_periodical;
     bool only_positions;
     string only_positions_file;
-
-
+    bool second_periodical;        //If a secound round of plots are copied around
+                                   //periodical boundary
 };
 
 
@@ -187,6 +187,30 @@ vector<pair<LGMdouble,LGMdouble> > translateCoordinates(const LGMdouble& x, cons
   points[5] = pair<LGMdouble,LGMdouble>(x - tr_x, y - tr_y);
   points[6] = pair<LGMdouble,LGMdouble>(x - tr_x, y);
   points[7] = pair<LGMdouble,LGMdouble>(x - tr_x, y + tr_y);
+
+  return points;
+}
+
+vector<pair<LGMdouble,LGMdouble> > doubleTranslateCoordinates(const LGMdouble& x, const LGMdouble& y,
+					       const LGMdouble& tr_x, const LGMdouble& tr_y)
+{
+  vector<pair<LGMdouble,LGMdouble> > points(16);
+  points[0] = pair<LGMdouble,LGMdouble>(x - 2.0*tr_x, y + 2.0*tr_y);
+  points[1] = pair<LGMdouble,LGMdouble>(x - tr_x,     y + 2.0*tr_y);
+  points[2] = pair<LGMdouble,LGMdouble>(x,            y + 2.0*tr_y);
+  points[3] = pair<LGMdouble,LGMdouble>(x + tr_x,     y + 2.0*tr_y);
+  points[4] = pair<LGMdouble,LGMdouble>(x + 2.0*tr_x, y + 2.0*tr_y);
+  points[5] = pair<LGMdouble,LGMdouble>(x - 2.0*tr_x, y + tr_y);
+  points[6] = pair<LGMdouble,LGMdouble>(x + 2.0*tr_x, y + tr_y);
+  points[7] = pair<LGMdouble,LGMdouble>(x - 2.0*tr_x, y);
+  points[8] = pair<LGMdouble,LGMdouble>(x + 2.0*tr_x, y);
+  points[9] =  pair<LGMdouble,LGMdouble>(x - 2.0*tr_x, y - tr_y);
+  points[10] = pair<LGMdouble,LGMdouble>(x + 2.0*tr_x, y - tr_y);
+  points[11] = pair<LGMdouble,LGMdouble>(x - 2.0*tr_x, y - 2.0*tr_y);
+  points[12] = pair<LGMdouble,LGMdouble>(x - tr_x,     y - 2.0*tr_y);
+  points[13] = pair<LGMdouble,LGMdouble>(x,            y - 2.0*tr_y);
+  points[14] = pair<LGMdouble,LGMdouble>(x + tr_x,     y - 2.0*tr_y);
+  points[15] = pair<LGMdouble,LGMdouble>(x + 2.0*tr_x, y - 2.0*tr_y);
 
   return points;
 }

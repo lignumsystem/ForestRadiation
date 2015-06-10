@@ -1,4 +1,4 @@
-#ifndef MAIN_PROGRAM_AS_CLASSI_H
+ #ifndef MAIN_PROGRAM_AS_CLASSI_H
 #define MAIN_PROGRAM_AS_CLASSI_H
 
 class SetSf;  //This is defined at the end of this file (declared here before use)
@@ -39,7 +39,7 @@ template<class TREE, class TS, class BUD>
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
   cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI] [-zeroWoodyRadius]" << endl;
-  cout << "[-getTreesPosPeriodical <file>] [-onlyPositions <file>]" << endl << endl;
+  cout << "[-getTreesPosPeriodical <file>] [-onlyPositions <file>] [-2ndPeriodical]" << endl << endl;
   cout << "-generateLocations <num>  In this case <num> trees will be generated to random locations. If this" << endl;
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
@@ -90,6 +90,8 @@ template<class TREE, class TS, class BUD>
   cout << "                       The transmission is calculated for zenith angles 7.5, 22.5, 37.5, 52.5, 67.5" << endl;
   cout << "                       and 82.5 degrees, for each zenith angle calculation is made with 30 degree" << endl;
   cout << "                       intervals in the azimuth. The results are written on the console." << endl;
+  cout << "-2ndPeriodical         A second set of plots is set around the first set of plots (see" << endl;
+  cout << "                       -getTreesPosPeriodical) (16 copies)" << endl;
   cout  << endl;
 }
 
@@ -354,6 +356,9 @@ template<class TREE, class TS, class BUD>
      only_positions_file = clarg;
   }
 
+  second_periodical = false;
+  if (CheckCommandLine(argc,argv,"-2ndPeriodical"))
+    second_periodical= true;
 
   if (verbose){
     cout << "parseCommandLine end" <<endl;
@@ -1483,6 +1488,7 @@ template<class TREE, class TS, class BUD>
 
       LGMdouble x_tr = x_ur - x_ll;
       LGMdouble y_tr = y_ur - y_ll;
+
       vector<pair<LGMdouble,LGMdouble> > tr = translateCoordinates(x, y, x_tr, y_tr);
       for(int i = 0; i < 8; i++) {
 	t = new TREE(Point(0.0,0.0,0.0),PositionVector(0,0,1),
@@ -1505,6 +1511,34 @@ template<class TREE, class TS, class BUD>
 	       << tr[i].second << ")" << endl;
 	}
       }
+
+      // If a second round of plots are copied around periodical boundary
+      if(second_periodical) {
+	vector<pair<LGMdouble,LGMdouble> > tr1 = doubleTranslateCoordinates(x, y, x_tr, y_tr);
+	for(int i = 0; i < 16; i++) {
+	  t = new TREE(Point(0.0,0.0,0.0),PositionVector(0,0,1),
+		       "sf.fun","fapical.fun","fgo.fun",
+		       "fsapwdown.fun","faf.fun","fna.fun", "fwd.fun",
+		       "flr.fun");
+
+	  reader.readXMLToTree(*t, xml_file);
+	  if(zero_woody_radius) {
+	    ForEach(*t,ZeroWoodyRadius());
+	  }
+
+	  MoveTree<ScotsPineSegment,ScotsPineBud>
+	    move(Point(tr1[i].first,tr1[i].second,0.0)-GetPoint(*t),*t);
+	  ForEach(*t, move);
+	  vtree.push_back(t);
+	  no_trees++;
+	  if (verbose){
+	    cout << "Tree " << xml_file << " at (" << tr1[i].first << ", "
+		 << tr1[i].second << ")" << endl;
+	  }
+	}
+      }  //if -2ndPeriodical
+
+
     }  //end while - loop
   cout << no_trees << " trees were created from file " << trees_pos_periodical_file << "." << endl;
 }
