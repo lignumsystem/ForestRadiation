@@ -1,4 +1,4 @@
- #ifndef MAIN_PROGRAM_AS_CLASSI_H
+#ifndef MAIN_PROGRAM_AS_CLASSI_H
 #define MAIN_PROGRAM_AS_CLASSI_H
 
 class SetSf;  //This is defined at the end of this file (declared here before use)
@@ -39,7 +39,7 @@ template<class TREE, class TS, class BUD>
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
   cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI] [-zeroWoodyRadius]" << endl;
-  cout << "[-getTreesPosPeriodical <file>] [-onlyPositions <file>] [-2ndPeriodical]" << endl << endl;
+  cout << "[-getTreesPosPeriodical <file>] [-onlyPositions <file> [-ellipse <file>]] [-2ndPeriodical]" << endl << endl;
   cout << "-generateLocations <num>  In this case <num> trees will be generated to random locations. If this" << endl;
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
@@ -90,6 +90,11 @@ template<class TREE, class TS, class BUD>
   cout << "                       The transmission is calculated for zenith angles 7.5, 22.5, 37.5, 52.5, 67.5" << endl;
   cout << "                       and 82.5 degrees, for each zenith angle calculation is made with 30 degree" << endl;
   cout << "                       intervals in the azimuth. The results are written on the console." << endl;
+  cout << "-ellipses <File>       In this case it is first checked if the lines of sight of -onlyPositions hit the" << endl;
+  cout << "                       ellipse crowns given in file; only then calculation of transmission is made." << endl;
+  cout << "                       file specifies the positions and dimensions of the ellipses. The positions must" << endl;
+  cout << "                       be the same as the shading trees given in -getTreesPos" << endl;
+  cout << "                       Outputs both the transparency and the number of ellipses hit." << endl;
   cout << "-2ndPeriodical         A second set of plots is set around the first set of plots (see" << endl;
   cout << "                       -getTreesPosPeriodical) (16 copies)" << endl;
   cout  << endl;
@@ -1162,6 +1167,40 @@ template<class TREE, class TS,class BUD>
  
 }
 
+//====================================================================================
+// read_ellipsoids is a function called by calculateRadiationToPoint
+//
+//====================================================================================
+
+void read_ellipsoids(const string ellipsoids_file, vector<vector<LGMdouble> >& ellipsoids) {
+  ifstream ef(ellipsoids_file.c_str());
+  if(!ef) {
+    cout << "Could not open ellipses input file " << ellipsoids_file << endl;
+    exit(0);
+  }
+
+  vector<double> values(5); //x, y, and z coordinates of ellipsis center, radius and height
+  string line;
+  getline(ef,line); //Comment line
+  int n = 0;
+  while (ef.eof() == false)
+    {
+      getline(ef,line);
+      if(ef.eof() == true)
+        break;
+      LGMdouble x, y, z, r, h;
+      istringstream ist(line);
+      ist >> values[0] >> values[1] >> values[2] >> values[3] >> values[4];
+      ellipsoids.push_back(values);
+      n++;
+    }
+  ef.close();
+
+  cout << "Ellipsoid file " << ellipsoids_file << " contains " << n << " lines." << endl;
+
+}   //End of read_ellipsoids
+
+
 //======================================================================================================
 // calculateRadiationToPoint
 
@@ -1170,12 +1209,18 @@ template<class TREE, class TS,class BUD>
 // The transmission is calculated for zenith angles 7.5, 22.5, 37.5, 52.5, 67.5 and 82.5 degrees.
 // For each zenith angle calculation is made with 30 degree intervals in the azimuth (12 values).
 // The results are written on the console.
+//
+// If -ellipse <file> is set, it is first checked whether a line of sight hits one of ellipses that are
+// given in file. The positions of ellipses must be the same as the shading trees given in -getTreesPos,
+// otherwise the calculation does not make any sense. The hitting of ellipses is tested in a function
+// which returns in a vector the number of ellipses hitted. This is given as argument to calculation of
+// transparency in ShadingEffectOfCfTreeSegmentToPoint
 //=======================================================================================================
 
 #define HIT_THE_WOOD -1
 
 template<class TREE, class TS,class BUD>
-  void MainProgramAsClass<TREE, TS,BUD>::calculateRadiationToPoint()
+  void MainProgramAsClass<TREE, TS,BUD>::calculateRadiationToPoint(int argc, char** argv)
 {
 
   //1. Read the positions from a file
@@ -1186,24 +1231,22 @@ template<class TREE, class TS,class BUD>
     exit(0);
   }
 
-  vector<Point> points;
+  vector<Point> observ_positions;
   string line;
   getline(opf,line); //Comment line
 
   while (opf.eof() == false)
     {
       getline(opf,line);
-
       if(opf.eof() == true)
         break;
-
       LGMdouble x, y, z;
       istringstream ist(line);
       ist >> x >> y >> z;
-      points.push_back(Point(x,y,z));
+      observ_positions.push_back(Point(x,y,z));
     }
 
-  int number_of_points = (int)points.size();
+  int number_of_points = (int)observ_positions.size();
 
   //2. The directions: zenith angles 7.5 22.5 37.5 52.5 67.5 82.5 degrees
   //                   azimuth angles 0 30 60 90 120 150 180 210 240 270 300 330 degrees
@@ -1221,14 +1264,37 @@ template<class TREE, class TS,class BUD>
       directions.push_back(v);
     }
   }
+
   int no_directions = (int)directions.size();
 
-  //3. Calculate transmission to all points and write out results
+  // 3. Calculate transmission to all points and write out results but if
+  // -ellipse <file> check if lines of sight hit the ellipses.
+  // The result is stored in vector ellipse_hits 
+
+  vector<vector<LGMdouble> > ellipsoids;
+
+  bool ellipsoid_calculation = false;
+  string ellipsoids_file;
+  string clarg;
+  clarg.clear();
+  if (ParseCommandLine(argc,argv,"-ellipses", clarg)) {
+     ellipsoid_calculation = true;
+     ellipsoids_file = clarg;
+     read_ellipsoids(ellipsoids_file, ellipsoids);
+  }
+
+
   K = ParametricCurve("K.fun");  //K is data member of MainProgramAsClass
   for(int i = 0; i < number_of_points; i++) {
+    Point pin = observ_positions[i];
+    vector<int> ellipsoid_hits(no_directions, 0);
+    if(ellipsoid_calculation) {
+      ellipsoid_interception(pin, directions, ellipsoids, ellipsoid_hits);
+    }
+
     vector<LGMdouble> tulos(no_directions);
-    Point pin = points[i];
-    ShadingEffectOfCfTreeSegmentToPoint<TS,BUD> setp(pin,directions,K,tulos);
+
+    ShadingEffectOfCfTreeSegmentToPoint<TS,BUD> setp(pin,directions,K,ellipsoid_hits,tulos);
 
     for(int k = 0; k < no_trees; k++) {
       TREE* t = vtree[k];
@@ -1261,11 +1327,32 @@ template<class TREE, class TS,class BUD>
       }
       cout << endl;
     }
-   }  // for(int i = 0; i < ...
+
+    if(ellipsoid_calculation) {
+      int count = 0;
+      for(int izen = 0; izen < 6; izen++) {
+	cout << z_angles[izen] << ": ";
+	int zeros = 0;
+	int sum = 0;
+	for(int iaz = 0; iaz < 12; iaz++) {
+	  if(ellipsoid_hits[count] == 0) {
+	    zeros++;
+	  }
+	  sum += ellipsoid_hits[count];
+	  count++;
+	}
+	cout << zeros << " " << (LGMdouble)sum/12.0 << endl;
+      } 
+    }
+
+
+  }  // for(int i = 0; i < ...
 
 }  //end of calculateRadiationToPoint()  { ..
 
 #undef HIT_THE_WOOD
+
+
 
 
 class SetSf {

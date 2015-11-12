@@ -18,4 +18,4 @@ win32:CONFIG += console
 SOURCES += src/generate-tree-locations.cc \
            lignum-radiation.cc \
            src/metabolism.cc \
-           src/borderforest.cc 
+           src/borderforest.cc src/ellipsoid-calculations.cc

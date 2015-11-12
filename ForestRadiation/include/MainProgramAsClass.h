@@ -51,7 +51,7 @@ template <class TREE, class TS, class BUD>
     void setVoxelSpaceAndBorderForest();
     void calculateRadiation();
     void calculateRadiationOnlySelf();
-    void calculateRadiationToPoint();
+    void calculateRadiationToPoint(int argc, char** argv);
     void getTreesAndPositions();
     void getTreesAndPositionsPeriodicalBoundary();
     void createTargetTree();
@@ -127,6 +127,8 @@ template <class TREE, class TS, class BUD>
     bool second_periodical;        //If a secound round of plots are copied around
                                    //periodical boundary
 };
+
+
 
 
 class Compartments{
@@ -214,6 +216,7 @@ vector<pair<LGMdouble,LGMdouble> > doubleTranslateCoordinates(const LGMdouble& x
 
   return points;
 }
+
 
 
 #endif

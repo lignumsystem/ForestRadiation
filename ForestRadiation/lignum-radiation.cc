@@ -64,7 +64,7 @@ int main(int argc, char** argv)
     main_program.calculateRadiation();
   }
   else {
-    main_program.calculateRadiationToPoint();
+    main_program.calculateRadiationToPoint(argc,argv);
   }
   exit(0);
 }

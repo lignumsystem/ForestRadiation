@@ -292,8 +292,9 @@ template <class TS,class BUD>
 class ShadingEffectOfCfTreeSegmentToPoint {
 public:
  ShadingEffectOfCfTreeSegmentToPoint(Point& p, vector<vector<LGMdouble> >& dir,
-				     ParametricCurve& K_in, vector<LGMdouble>& S_in)
-   : p0(p), directions(dir), K(K_in),S(S_in)
+				     ParametricCurve& K_in, const vector<int>& ellipsoid_h,
+                                     vector<LGMdouble>& S_in)
+   : p0(p), directions(dir), K(K_in),ellipsoid_hits(ellipsoid_h),S(S_in)
   {
     number_of_directions = (int)directions.size();
     for(int i = 0; i < (int)directions.size(); i++)
@@ -305,9 +306,14 @@ private:
     Point p0;
     vector<vector<LGMdouble> >& directions;
     const ParametricCurve& K;
+    const vector<int>& ellipsoid_hits;
     vector<double>& S;           //Optical depth
     int number_of_directions;
 };
+
+void ellipsoid_interception(const Point& p00, const vector<vector<LGMdouble> >& directions,
+			    const vector<vector<LGMdouble> >& ellipsoids,vector<int>& ellipsoid_hits);
+
 
 #undef HIT_THE_FOLIAGE
 #undef NO_HIT

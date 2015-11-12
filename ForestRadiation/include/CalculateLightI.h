@@ -412,6 +412,11 @@ template <class TS,class BUD>
     }
 
     for(int i = 0; i < number_of_directions; i++) {
+
+      if(ellipsoid_hits[i] == 0) {   //Don't calculate if has not intercepted an ellipse crown
+	continue;
+      }
+
       //If the sector is blocked by another shoot
       //do not make computations, check the next sector instead
       if (S[i] == HIT_THE_WOOD) {
@@ -453,14 +458,11 @@ template <class TS,class BUD>
 				     GetValue(*ts, LGAL),
 				     distance);
       }
-
       if (result == HIT_THE_WOOD){
 	//mark the sector blocked
 	S[i] = HIT_THE_WOOD;
       }
       else if (result == HIT_THE_FOLIAGE){
-	//otherwise compute Vp (the shadiness):
-	//1. compute the inclination of light beam and the segment
 	//1a. angle between segment and light beam
 	double a_dot_b = Dot(GetDirection(*ts),
 			     PositionVector(radiation_direction));
@@ -473,6 +475,7 @@ template <class TS,class BUD>
 	double Vp = extinction *distance*fol_dens;
 	S[i] += Vp;
       }
+
     }  //for(int i = 0; i < number_of_directions; ...
   }
   return tc;
