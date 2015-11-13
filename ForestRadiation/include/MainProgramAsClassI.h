@@ -1188,7 +1188,6 @@ void read_ellipsoids(const string ellipsoids_file, vector<vector<LGMdouble> >& e
       getline(ef,line);
       if(ef.eof() == true)
         break;
-      LGMdouble x, y, z, r, h;
       istringstream ist(line);
       ist >> values[0] >> values[1] >> values[2] >> values[3] >> values[4];
       ellipsoids.push_back(values);
@@ -1303,7 +1302,6 @@ template<class TREE, class TS,class BUD>
     }
 
     //ShadingEffectOfCfTreeSegmentToPoint calculates optical depth
-
     for(int k = 0; k < no_directions; k++) {
       if(tulos[k] == HIT_THE_WOOD) {
 	tulos[k] = 0.0;
@@ -1318,15 +1316,37 @@ template<class TREE, class TS,class BUD>
       }
     }
 
+
+    // Mean value per inclination is calculated and printed out as the last item of a line.
+    // In the case of ellipsoid calculation only lines-of-sight that have
+    // not been intercepted by ellipsoids are omitted from the mean value calculation
+    // (their value (=1) is nevertheless printed out).
+   
     cout << "Position (" << pin.getX() << ", " << pin.getY() << ", " << pin.getZ() << ")" << endl;
     int count = 0;
     for(int izen = 0; izen < 6; izen++) {
       cout << z_angles[izen] << ": ";
+      LGMdouble sum = 0.0;
+      int incl_count = 0;
       for(int iaz = 0; iaz < 12; iaz++) {
-	cout << tulos[count] << " ";
-	count++;
+        cout << tulos[count] << " ";
+	if(!ellipsoid_calculation) {
+	  sum += tulos[count];
+	  incl_count++;
+	}
+	else {
+	  if(ellipsoid_hits[count] != 0) {
+	    sum += tulos[count];
+	    incl_count++;
+	  }
+	}
+        count++;
       }
-      cout << endl;
+      LGMdouble incl_result = 0.0;
+      if(incl_count > 0) {
+	incl_result = sum/(LGMdouble)incl_count;
+      }
+      cout << incl_result << endl;
     }
 
     if(ellipsoid_calculation) {
