@@ -1277,14 +1277,21 @@ template<class TREE, class TS,class BUD>
   string clarg;
   clarg.clear();
   if (ParseCommandLine(argc,argv,"-ellipses", clarg)) {
-     ellipsoid_calculation = true;
-     ellipsoids_file = clarg;
-     read_ellipsoids(ellipsoids_file, ellipsoids);
+    ellipsoid_calculation = true;
+    ellipsoids_file = clarg;
+    read_ellipsoids(ellipsoids_file, ellipsoids);
   }
 
 
   K = ParametricCurve("K.fun");  //K is data member of MainProgramAsClass
-  for(int i = 0; i < number_of_points; i++) {
+
+  vector<LGMdouble> global_mean_gf(6,0.0);
+  vector<int> no_obs_for_gf(6,0);
+  vector<LGMdouble> global_mean_null(6,0.0);
+  vector<LGMdouble> global_mean_contacts(6,0.0);
+
+
+  for(int i = 0; i < number_of_points; i++) {           //Loop of sensors (number_of_pints)
     Point pin = observ_positions[i];
     vector<int> ellipsoid_hits(no_directions, 0);
     if(ellipsoid_calculation) {
@@ -1345,6 +1352,11 @@ template<class TREE, class TS,class BUD>
       LGMdouble incl_result = 0.0;
       if(incl_count > 0) {
 	incl_result = sum/(LGMdouble)incl_count;
+	global_mean_gf[izen] += incl_result;
+	(no_obs_for_gf[izen])++;
+      }
+      else {
+	incl_result = -1.0;
       }
       cout << incl_result << endl;
     }
@@ -1362,12 +1374,43 @@ template<class TREE, class TS,class BUD>
 	  sum += ellipsoid_hits[count];
 	  count++;
 	}
+	global_mean_null[izen] += zeros/12.0; //Share of nulls <=> divide by no of azims (=12)
+	global_mean_contacts[izen] += (LGMdouble)sum/12.0;
 	cout << zeros << " " << (LGMdouble)sum/12.0 << endl;
-      } 
+      }
     }
 
+  }  // for(int i = 0; i < number_of_points ...
 
-  }  // for(int i = 0; i < ...
+  //Print mean values across all obseravtion points
+
+  for( int i = 0; i < 6; i++) {
+    if(no_obs_for_gf[i] > 0) {
+      global_mean_gf[i] /= (int)(no_obs_for_gf[i]);
+    }
+    else {
+      global_mean_gf[i] = -1.0;
+    }
+  }
+
+  cout << "Gap fraction: ";
+  for( int i = 0; i < 6; i++) {
+    cout << global_mean_gf[i] << " ";
+  }
+  cout << endl;
+
+  if(ellipsoid_calculation) {
+    cout << "No contacts: ";
+    for( int i = 0; i < 6; i++) {
+      cout << global_mean_contacts[i]/(LGMdouble)number_of_points << " ";
+    }
+    cout << endl;
+    cout << "Nulls: ";
+    for( int i = 0; i < 6; i++) {   
+      cout << global_mean_null[i]/(LGMdouble)number_of_points << " ";
+    }
+    cout << endl;
+  }
 
 }  //end of calculateRadiationToPoint()  { ..
 
