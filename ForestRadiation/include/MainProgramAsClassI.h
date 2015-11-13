@@ -1294,7 +1294,8 @@ template<class TREE, class TS,class BUD>
 
     vector<LGMdouble> tulos(no_directions);
 
-    ShadingEffectOfCfTreeSegmentToPoint<TS,BUD> setp(pin,directions,K,ellipsoid_hits,tulos);
+    ShadingEffectOfCfTreeSegmentToPoint<TS,BUD> setp(pin,directions,K,ellipsoid_hits,
+						     ellipsoid_calculation,tulos);
 
     for(int k = 0; k < no_trees; k++) {
       TREE* t = vtree[k];

@@ -293,8 +293,9 @@ class ShadingEffectOfCfTreeSegmentToPoint {
 public:
  ShadingEffectOfCfTreeSegmentToPoint(Point& p, vector<vector<LGMdouble> >& dir,
 				     ParametricCurve& K_in, const vector<int>& ellipsoid_h,
-                                     vector<LGMdouble>& S_in)
-   : p0(p), directions(dir), K(K_in),ellipsoid_hits(ellipsoid_h),S(S_in)
+                                     const bool ellipsoid_c, vector<LGMdouble>& S_in)
+   : p0(p), directions(dir), K(K_in),ellipsoid_hits(ellipsoid_h),
+    ellipsoid_calculation(ellipsoid_c), S(S_in)
   {
     number_of_directions = (int)directions.size();
     for(int i = 0; i < (int)directions.size(); i++)
@@ -307,6 +308,7 @@ private:
     vector<vector<LGMdouble> >& directions;
     const ParametricCurve& K;
     const vector<int>& ellipsoid_hits;
+    const bool ellipsoid_calculation;      //
     vector<double>& S;           //Optical depth
     int number_of_directions;
 };

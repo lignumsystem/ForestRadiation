@@ -413,7 +413,8 @@ template <class TS,class BUD>
 
     for(int i = 0; i < number_of_directions; i++) {
 
-      if(ellipsoid_hits[i] == 0) {   //Don't calculate if has not intercepted an ellipse crown
+      if(ellipsoid_calculation && (ellipsoid_hits[i] == 0)) {   //In case of ellipsoid calculation, don't
+	                                             //calculate if has not intercepted an ellipsoid crown
 	continue;
       }
 
