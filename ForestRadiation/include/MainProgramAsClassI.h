@@ -39,7 +39,8 @@ template<class TREE, class TS, class BUD>
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
   cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI] [-zeroWoodyRadius]" << endl;
-  cout << "[-getTreesPosPeriodical <file>] [-onlyPositions <file> [-ellipse <file>]] [-2ndPeriodical]" << endl << endl;
+  cout << "[-getTreesPosPeriodical <file>] [-onlyPositions <file> [-ellipse <file>]] [-2ndPeriodical]" << endl;
+  cout << "[-gapRadius <value>]" << endl << endl;
   cout << "-generateLocations <num>  In this case <num> trees will be generated to random locations. If this" << endl;
   cout << "          is not on, tree locations will be read from file Treelocations.txt. This file can be changed" << endl;
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
@@ -97,6 +98,7 @@ template<class TREE, class TS, class BUD>
   cout << "                       Outputs both the transparency and the number of ellipses hit." << endl;
   cout << "-2ndPeriodical         A second set of plots is set around the first set of plots (see" << endl;
   cout << "                       -getTreesPosPeriodical) (16 copies)" << endl;
+  cout << "-gapRadius <value>     Empty gap around target tree (at middle of stand)" << endl;
   cout  << endl;
 }
 
@@ -105,7 +107,7 @@ template<class TREE, class TS, class BUD>
 void MainProgramAsClass<TREE,TS,BUD>::checkCommandLine(int argc, char** argv)const
 {
   //At least three  mandatory arguments required 
-  if (argc < 1){
+  if (argc < 4){
     usage();
     exit(0);
   }
@@ -365,6 +367,13 @@ template<class TREE, class TS, class BUD>
   if (CheckCommandLine(argc,argv,"-2ndPeriodical"))
     second_periodical= true;
 
+  gap_radius = 0.0;
+  clarg.clear();
+  if (ParseCommandLine(argc,argv,"-gapRadius", clarg)) {
+    gap_radius = atof(clarg.c_str());
+  }
+
+
   if (verbose){
     cout << "parseCommandLine end" <<endl;
 
@@ -397,7 +406,7 @@ template<class TREE, class TS,class BUD>
 
     //number of trees may decrease due to hard core
     int no_trees_0 = no_trees;
-    GenerateLocations(no_trees,0.0,0.0,vs_x,vs_y,tree_distance,gap,locations);
+    GenerateLocations(No_trees,0.0,0.0,vs_x,vs_y,tree_distance,gap,locations);
 
     if (verbose){
       cout << "Number of trees" << locations.size() <<endl 
@@ -1248,7 +1257,7 @@ template<class TREE, class TS,class BUD>
   int number_of_points = (int)observ_positions.size();
 
   //2. The directions: zenith angles 7.5 22.5 37.5 52.5 67.5 82.5 degrees
-  //                   azimuth angles 0 30 60 90 120 150 180 210 240 270 300 330 degrees
+  //                   Azimuth angles 0 30 60 90 120 150 180 210 240 270 300 330 degrees
 
   vector<vector<LGMdouble> > directions;
   vector<LGMdouble> z_angles;
