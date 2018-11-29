@@ -373,6 +373,10 @@ template<class TREE, class TS, class BUD>
     gap_radius = atof(clarg.c_str());
   }
 
+  randomize_in_box = false;
+  if (CheckCommandLine(argc,argv,"-randomizeInBox")) {
+    randomize_in_box = true;
+  }
 
   if (verbose){
     cout << "parseCommandLine end" <<endl;
@@ -406,7 +410,7 @@ template<class TREE, class TS,class BUD>
 
     //number of trees may decrease due to hard core
     int no_trees_0 = no_trees;
-    GenerateLocations(No_trees,0.0,0.0,vs_x,vs_y,tree_distance,gap,locations);
+    GenerateLocations(no_trees,0.0,0.0,vs_x,vs_y,tree_distance,gap,locations);
 
     if (verbose){
       cout << "Number of trees" << locations.size() <<endl 
@@ -751,8 +755,17 @@ template<class TREE, class TS,class BUD>
 
   if(!voxel_tree) {   //In the case of voxeltree it is dumped already in initializeVoxelSpace()
     vs->resize(ll, ur);
-
     vs->reset();          //this resets all data in voxelboxes before dumping
+
+    //This scrambles the shoots in the voxel space (orientation is not changed)
+    if(randomize_in_box) {
+        ForestGap gp(pair<double,double>(middle_stand.first,middle_stand.second),1.0);
+	RandomizeSegmentsInBox  ran_shoots(ll, ur, gp);
+	for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
+	  ForEach(*vtree[k], ran_shoots);
+	}
+    }
+    
 
     for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
       DumpCfTree(*vs, *vtree[k], num_parts, true);
@@ -972,7 +985,6 @@ template<class TREE, class TS,class BUD>
     exit(0);
    }
 
-
   //EvaluateRadiationForCfTreeSegment_1<ScotsPineSegment,ScotsPineBud> Rad(K,vs,&border_forest, green_ext);
   //Alla on pairwise kaikille puille
    K = ParametricCurve("K.fun");
@@ -991,8 +1003,6 @@ template<class TREE, class TS,class BUD>
  }
 
  SetValue(*vtree[0],TreeQinMax,GetFirmament(*t_t).diffuseBallSensor());    //target tree is the first
-
-
 
    EvaluateRadiationForCfTreeSegment_3<ScotsPineSegment,ScotsPineBud>
      Rad3(K, vs, &border_forest, false, a, b, virittely_dump, k_border_conifer,

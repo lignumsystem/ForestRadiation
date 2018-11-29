@@ -126,6 +126,8 @@ template <class TREE, class TS, class BUD>
     string only_positions_file;
     bool second_periodical;        //If a secound round of plots are copied around
                                    //periodical boundary
+    bool randomize_in_box;         //set the segments of tree randomly in a given box
+                                   //orientation of segments is not changed
 };
 
 

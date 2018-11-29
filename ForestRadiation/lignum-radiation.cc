@@ -34,6 +34,9 @@ int main(int argc, char** argv)
   main_program.setVerbose(true);
   //Check and parse command line, the  command line includes switches to control
   //the simulation
+
+  main_program.checkCommandLine(argc, argv);
+
   main_program.parseCommandLine(argc,argv);
   if(main_program.getOnlySelf()) {
     main_program.calculateRadiationOnlySelf();

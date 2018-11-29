@@ -492,46 +492,48 @@ public:
   }
 };
 
-//Distributes trees TreeSegments that are in the box randomly
-   
+//Distributes trees TreeSegments that are in the box randomly                                                       
+
 class RandomizeSegmentsInBox{
 public:
 RandomizeSegmentsInBox(const Point lli, const Point uri, ForestGap gi) :
     ll(lli), ur(uri), gap(gi)  {
+    }
 
+    bool inGap(const Point p, const ForestGap gp) const {
+      return sqrt(pow(p.getX() - (gp.first).first, 2.0) + pow(p.getY() - (gp.first).second, 2.0))
+	> gp.second;
     }
-    bool inBox(const Point p) {
-	bool in = false;
-	if(p.getX() < ll.getX()) return in;
-	if(p.getY() < ll.getY()) return in;
-	if(p.getZ() < ll.getZ()) return in;
-	if(p.getX() > ur.getX()) return in;
-	if(p.getY() > ur.getY()) return in;
-	if(p.getZ() > ur.getZ()) return in;
-	in = true;
-	return in;
-    }
-	TreeCompartment<ScotsPineSegment,ScotsPineBud>*
-	    operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
-	{
-	    if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
-		Point mid = GetMidPoint(*ts);
-		if(inBox(mid)) { //10 cm = 0.1 m to protect Segment from sticking out from box 
-		    LGMdouble x = ll.getX() + 0.1
-			+ ran3(&ran3seed)*(ur.getX()-ll.getX() - 0.2);
-                    LGMdouble y = ll.getY() + 0.1
-                        + ran3(&ran3seed)*(ur.getY()-ll.getY() - 0.2);
-                    LGMdouble z = ll.getZ() + 0.1
-                        + ran3(&ran3seed)*(ur.getZ()-ll.getZ() - 0.2);
-		    SetPoint(*ts, Point(x,y,z));
-		}
-	    }
-	    return tc;
-	}
+
+        TreeCompartment<ScotsPineSegment,ScotsPineBud>*
+            operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
+        {
+            if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
+	      Point p;
+	      bool in_gap = true;
+	      while(in_gap) {
+	      LGMdouble x = ll.getX() + 0.1
+		+ ran3(&ran3_seed)*(ur.getX()-ll.getX() - 0.2);
+	      LGMdouble y = ll.getY() + 0.1
+		+ ran3(&ran3_seed)*(ur.getY()-ll.getY() - 0.2);
+	      LGMdouble z = ll.getZ() + 0.1
+		+ ran3(&ran3_seed)*(ur.getZ()-ll.getZ() - 0.2);
+	      
+	      p = Point(x,y,z);
+	      if(!inGap(p, gap)) {
+		in_gap = false;
+		 }
+	      }
+	      SetPoint(*ts, p - (Point)(0.5*GetValue(*ts, LGAL)*GetDirection(*tc)));
+            }
+            return tc;
+        }
 private:
-    Point ll;         //lower left
-    Point ur;         //upper right
+    Point ll;         //lower left                                                                                  
+    Point ur;         //upper right                                                                                 
     ForestGap gap;
-    };
+};
 
 #endif
+
+
