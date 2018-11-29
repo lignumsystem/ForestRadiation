@@ -5,6 +5,10 @@
 #include <ScotsPine.h>
 #include <VoxelSpace.h>
 
+
+extern int ran3_seed;
+typedef pair<pair<double,double>,double> ForestGap;
+
 //Propagate up the Qin to newly created segments and buds
 //Also set the relative light LGAip for the bud
 class ForwardScotsPineQin{
@@ -488,5 +492,46 @@ public:
   }
 };
 
+//Distributes trees TreeSegments that are in the box randomly
+   
+class RandomizeSegmentsInBox{
+public:
+RandomizeSegmentsInBox(const Point lli, const Point uri, ForestGap gi) :
+    ll(lli), ur(uri), gap(gi)  {
+
+    }
+    bool inBox(const Point p) {
+	bool in = false;
+	if(p.getX() < ll.getX()) return in;
+	if(p.getY() < ll.getY()) return in;
+	if(p.getZ() < ll.getZ()) return in;
+	if(p.getX() > ur.getX()) return in;
+	if(p.getY() > ur.getY()) return in;
+	if(p.getZ() > ur.getZ()) return in;
+	in = true;
+	return in;
+    }
+	TreeCompartment<ScotsPineSegment,ScotsPineBud>*
+	    operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
+	{
+	    if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
+		Point mid = GetMidPoint(*ts);
+		if(inBox(mid)) { //10 cm = 0.1 m to protect Segment from sticking out from box 
+		    LGMdouble x = ll.getX() + 0.1
+			+ ran3(&ran3seed)*(ur.getX()-ll.getX() - 0.2);
+                    LGMdouble y = ll.getY() + 0.1
+                        + ran3(&ran3seed)*(ur.getY()-ll.getY() - 0.2);
+                    LGMdouble z = ll.getZ() + 0.1
+                        + ran3(&ran3seed)*(ur.getZ()-ll.getZ() - 0.2);
+		    SetPoint(*ts, Point(x,y,z));
+		}
+	    }
+	    return tc;
+	}
+private:
+    Point ll;         //lower left
+    Point ur;         //upper right
+    ForestGap gap;
+    };
 
 #endif
