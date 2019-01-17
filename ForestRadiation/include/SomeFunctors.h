@@ -495,45 +495,166 @@ public:
 //Distributes trees TreeSegments that are in the box randomly                                                       
 
 class RandomizeSegmentsInBox{
-public:
-RandomizeSegmentsInBox(const Point lli, const Point uri, ForestGap gi) :
-    ll(lli), ur(uri), gap(gi)  {
+ public:
+ RandomizeSegmentsInBox(const Point lli, const Point uri, ForestGap gi) :
+  ll(lli), ur(uri), gap(gi), density(1,1,1), limits(1), small_box_size(3) {
+    string str = "randomizeinbox.par";
+    ifstream rf(str.c_str());
+    if (!rf) {
+      cout << "File randomizeinbox.par is missing with flag -randomizeInBox!"  << endl;
+      exit(0);
+    }
+ 
+    string line;
+    getline(rf,line);//The header
+    getline(rf,line);//First data line
+    istringstream iss(line);
+    iss >> Nx >> Ny >> Nz;
+    getline(rf,line);
+    getline(rf,line);
+    istringstream iss1(line);
+    iss1 >> dens_min >> dens_max;
+    rf.close();
+
+    N_tot = Nx * Ny * Nz;
+    small_box_size[0] = (ur.getX() - ll.getX()) / static_cast<double>(Nx);
+    small_box_size[1] = (ur.getY() - ll.getY()) / static_cast<double>(Ny);
+    small_box_size[2] = (ur.getZ() - ll.getZ()) / static_cast<double>(Nz);
+
+    cout << Nx << " " << Ny << " " << Nz << endl;
+    cout << dens_min << " " <<  dens_max << endl;
+
+    //Now set the densities of the canopy space compartments
+    if(dens_max <= dens_min) {
+      cout << "-randomizeInBox dens_max <= dens_min !" << endl;
+      exit(0);
     }
 
-    bool inGap(const Point p, const ForestGap gp) const {
-      return sqrt(pow(p.getX() - (gp.first).first, 2.0) + pow(p.getY() - (gp.first).second, 2.0))
-	> gp.second;
+    density.resize(Nx, Ny, Nz);
+    double dens_sum = 0.0;
+    for(int i = 0; i < Nx; i++) {
+      for(int j = 0; j < Ny; j++) {
+	for(int k = 0; k < Nz; k++) {
+	  density[i][j][k] = dens_min + ran3(&ran3_seed)*(dens_max - dens_min);
+	  dens_sum += density[i][j][k];
+	}
+      }
+    }
+    for(int i = 0; i < Nx; i++) {
+      for(int j = 0; j < Ny; j++) {
+	for(int k = 0; k < Nz; k++) {
+	  density[i][j][k] /= dens_sum;
+	}
+      }
     }
 
-        TreeCompartment<ScotsPineSegment,ScotsPineBud>*
-            operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
-        {
-            if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
-	      Point p;
-	      bool in_gap = true;
-	      while(in_gap) {
-	      LGMdouble x = ll.getX() + 0.1
-		+ ran3(&ran3_seed)*(ur.getX()-ll.getX() - 0.2);
-	      LGMdouble y = ll.getY() + 0.1
-		+ ran3(&ran3_seed)*(ur.getY()-ll.getY() - 0.2);
-	      LGMdouble z = ll.getZ() + 0.1
-		+ ran3(&ran3_seed)*(ur.getZ()-ll.getZ() - 0.2);
-	      
-	      p = Point(x,y,z);
-	      if(!inGap(p, gap)) {
-		in_gap = false;
-		 }
-	      }
-	      SetPoint(*ts, p - (Point)(0.5*GetValue(*ts, LGAL)*GetDirection(*tc)));
-            }
-            return tc;
-        }
-private:
-    Point ll;         //lower left                                                                                  
-    Point ur;         //upper right                                                                                 
-    ForestGap gap;
+    limits.resize(N_tot);
+    dens_sum = 0.0;
+    vector<int> inds(3);
+    int index = 0;
+    for(int i = 0; i < Nx; i++) {
+      for(int j = 0; j < Ny; j++) {
+	for(int k = 0; k < Nz; k++) {
+	  dens_sum += density[i][j][k];
+	  limits[index] = dens_sum;
+	  index++;
+	}
+      }
+    }
+
+  }
+
+
+  void box_ind(const int n, const int ny, const int nz, vector<int>& out) const {
+    div_t dr1, dr2;
+    dr1 = div(n,ny*nz);
+    dr2 = div(dr1.rem,nz);
+    out[0] = dr1.quot;
+    out[1] = dr2.quot;
+    out[2] = dr2.rem;
+    return;
+  }
+
+  int box_no(const vector<double>& lims, const double value) const {
+    int ind = 0;
+    while(lims[ind] < value) {
+      ind++;
+    }
+    return ind;
+  }
+
+
+  bool inGap(const Point p, const ForestGap gp) const {
+    return sqrt(pow(p.getX() - (gp.first).first, 2.0) + pow(p.getY() - (gp.first).second, 2.0))
+      > gp.second;
+  }
+
+  bool inBigBox(const Point& p, const Point& ll, const Point& ur) const {
+    bool result = false;
+    if(p.getX() < ll.getX()) return result;
+    if(p.getX() > ur.getX()) return result;
+    if(p.getY() < ll.getY()) return result;
+    if(p.getY() > ur.getY()) return result;
+    if(p.getZ() < ll.getZ()) return result;
+    if(p.getX() > ur.getZ()) return result;
+
+    result = true;
+    return result;
+  }
+
+  TreeCompartment<ScotsPineSegment,ScotsPineBud>*
+    operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
+    {
+      if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
+	//first the small box
+	double ran = ran3(&ran3_seed);
+	int s_box = box_no(limits, ran);
+	vector<int> sb_ind(3);
+	box_ind(s_box, Ny, Nz, sb_ind);
+
+	//postion in the small box
+	double l = GetValue(*ts, LGAL);
+	bool out_of_space = true;
+	bool in_gap = true;
+	Point sb_ll(ll.getX()+static_cast<double>(sb_ind[0])*small_box_size[0],
+		    ll.getY()+static_cast<double>(sb_ind[1])*small_box_size[1],
+		    ll.getZ()+static_cast<double>(sb_ind[2])*small_box_size[2]);
+	int no_loop = 0;
+	Point p;
+	while((in_gap || out_of_space) && (no_loop < 10)) {
+	  LGMdouble x = sb_ll.getX() + ran3(&ran3_seed)*small_box_size[0];
+	  LGMdouble y = sb_ll.getY() + ran3(&ran3_seed)*small_box_size[1];
+	  LGMdouble z = sb_ll.getZ() + ran3(&ran3_seed)*small_box_size[2];
+
+	  p = Point(x,y,z);
+	  if(!inGap(p, gap)) {
+	    in_gap = false;
+	  }
+	  
+	  if ( (inBigBox(p - (Point)(0.5*l*GetDirection(*tc)), ll, ur)) &&
+	       (inBigBox(p + (Point)(0.5*l*GetDirection(*tc)), ll, ur)) ) {
+	    out_of_space = false;
+	  }
+	  
+	  no_loop++;                //this prevents infinite loop
+	}
+	SetPoint(*ts, p - (Point)(0.5*l*GetDirection(*tc)));
+      }
+      return tc;
+    }
+ private:
+  Point ll;         //lower left                                                                                  
+  Point ur;         //upper right                                                                                 
+  ForestGap gap;
+  int Nx, Ny, Nz;  //division of forest canopy box for variable density
+  int N_tot;        // = Nx*Ny*Nz
+  double dens_min, dens_max;  //variation of density
+  TMatrix3D<double> density;
+  vector<double> limits;
+  vector<double> small_box_size;   //x, y, and z side lengths of small boxes
+
 };
 
 #endif
-
+ 
 

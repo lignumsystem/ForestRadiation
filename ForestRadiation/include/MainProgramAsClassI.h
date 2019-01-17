@@ -99,6 +99,9 @@ template<class TREE, class TS, class BUD>
   cout << "-2ndPeriodical         A second set of plots is set around the first set of plots (see" << endl;
   cout << "                       -getTreesPosPeriodical) (16 copies)" << endl;
   cout << "-gapRadius <value>     Empty gap around target tree (at middle of stand)" << endl;
+  cout << "-randomizeInBox        Sets shoots of shading trees in random positions in the canopy space." << endl;
+  cout << "                       Density varies in the canopy space, this is specified in file" << endl;
+  cout << "                       randomizeinbox.par. It must be present." << endl;
   cout  << endl;
 }
 
