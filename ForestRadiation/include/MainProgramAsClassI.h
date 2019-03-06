@@ -30,12 +30,11 @@ template<class TREE, class TS, class BUD>
   void MainProgramAsClass<TREE,TS,BUD>::usage()const
 {
   cout << "Usage:  ./lig-radiation [-numParts <parts>]  [-treeDist <dist>]" <<endl;
-  cout << "[-xml <filename>] [-writeVoxels] [-noWoodVoxel]" <<endl;
-  cout << " [-generateLocations  <num>] [-treeLocations <file>]" << endl;
+  cout << "[-writeVoxels] [-noWoodVoxel] [-generateLocations  <num>] [-treeLocations <file>]" << endl;
   cout << "[-resultfile <file>] [-Voxboxside <value>]" << endl;
   cout << "[-dumpSelf] [-inputTree <filename>] [-kBorderConifer <value>] [-GapRadius <value>]" << endl;
-  cout << "[-targetTreeRad <value>] [-evaluateLAI] [-radMethod <num>] [-calculateSTAR <num>] [-calculateDirectionalStar] " << endl;
-  cout << "[-voxelTree] [-boxDirEffect] [-treeInfo] [-segmentInfo <file>]" << endl;
+  cout << "[-targetTreeRad <value>] [-evaluateLAI] [-radMethod <num>] [-calculateSTAR <num>]" << endl;
+  cout << "[-calculateDirectionalStar] [-voxelTree] [-boxDirEffect] [-treeInfo] [-segmentInfo <file>]" << endl;
   cout << "[-correctSTAR] [-constantSTAR <value>] [-appendMode] [-self] [-manyTrees <file>]" << endl;
   cout << "[-writeOnlyFile] [-getTreesPos <file>] [-radiusOnly <m>]" << endl;
   cout << "[-X <value>] [-Y <value>] [-Z <value>] [-evaluateLAI] [-zeroWoodyRadius]" << endl;
@@ -46,7 +45,7 @@ template<class TREE, class TS, class BUD>
   cout << "          by -treeLocations <file>. If location file is not found program stops." << endl;
   cout << "-noWoodVoxel            Woody parts are NOT dumped to voxels (default is are dumped)" << endl;
   cout << "-calculateDirectionalStar If directional star needs to be calculated then use true (default = false)  "<<endl;
-  cout << "-treeDist <dist>          Minimum distance between two trees (default = 0), works only with -generateLocations." << endl;  
+  cout << "-treeDist <dist>       Minimum distance between two trees (default = 0), works only with -generateLocations." << endl;  
   cout << "-numParts <parts>         Segments can be dumped to voxels by parts (i.e. they may belong to different voxels," << endl;
   cout << "-targetTree <num>         Any one of the trees can be identified as target tree (default = 0)" << endl;
   cout << "-resultfile <file>        File to store radiation calculations"  << endl;
@@ -57,15 +56,15 @@ template<class TREE, class TS, class BUD>
   cout << "-targetTreeRad <value>        Distance of furthest segments from stem of the target tree." << endl;
   cout << "-evaluateLAI           If vertical LAI distn of generated forest is evaluated; if it is, nothing else is done" << endl;
   cout << "-radMethod <num>       The version of radiation calculations to be used." << endl;
-  cout << "-calculateSTAR <num>   STAR values are clculated for each shoot in the first tree in in the tree vecor and"
-          "                       program stops. <num> specifies no. runs in Monte Carlo evaluation of STAR for each"
-          "                       shoot. Results are written in file STAR.dat. Note that if <num> is large,"
-          "                       the program runs a long time."   << endl; 
-  cout << "-voxelTree             In this case a tree is made which has one segment in each voxel."
-          "                       NOTE Treelocations file or -generate MUST be such that there is only one tree."
-          "                       Side length of voxelbox _MUST_ be > 0.15 (length of segments in voxels), otherwise program"
-          "                       will crash."
-       << endl;
+  cout << "                       2 == pairvise, 3 == VoxelSpace" << endl; 
+  cout << "-calculateSTAR <num>   STAR values are clculated for each shoot in the first tree in in the tree vecor and" << endl;
+  cout << "                       program stops. <num> specifies no. runs in Monte Carlo evaluation of STAR for each" << endl;
+  cout << "                       shoot. Results are written in file STAR.dat. Note that if <num> is large," << endl;
+  cout << "                       the program runs a long time."   << endl; 
+  cout << "-voxelTree             In this case a tree is made which has one segment in each voxel." << endl;
+  cout <<  "                      NOTE Treelocations file or -generate MUST be such that there is only one tree." << endl;
+  cout <<  "                      Side length of voxelbox _MUST_ be > 0.15 (length of segments in voxels), otherwise" << endl;
+  cout <<  "                      program will crash." << endl;
   cout << "-PrintBoxCfData <file> Writes voxelboxcontents to file with VoxelSpace.PrintBoxCfData(). Then stops"
        << endl;
   cout << "-boxDirEffect          If effect of mean direction of segments in box considered (default = no)"
@@ -109,8 +108,8 @@ template<class TREE, class TS, class BUD>
 template<class TREE, class TS, class BUD>
 void MainProgramAsClass<TREE,TS,BUD>::checkCommandLine(int argc, char** argv)const
 {
-  //At least three  mandatory arguments required 
-  if (argc < 4){
+  //At least one  mandatory argument required 
+  if (argc < 2){
     usage();
     exit(0);
   }
@@ -320,7 +319,6 @@ template<class TREE, class TS, class BUD>
     mtf.close();
 
   }  
-
 
   write_only_file = false;
   if (CheckCommandLine(argc,argv,"-writeOnlyFile"))
@@ -872,7 +870,6 @@ template<class TREE, class TS,class BUD>
 template<class TREE, class TS,class BUD>
   void MainProgramAsClass<TREE, TS,BUD>::calculateRadiation()
 {
-
   //Find max height (Hmax) and minimum height of crown base (Hcbmin)
   //and construct then the target tree
 
@@ -999,10 +996,10 @@ template<class TREE, class TS,class BUD>
    bool virittely_dump = false;                    //HUOM virittely
 
 
-
    //Before radiation calculations set up the sky
  for (unsigned int k = 0; k < (unsigned int)no_trees; k++) {
-   GetFirmament(*vtree[k]).resize(15,15,1200.0);
+   //   GetFirmament(*vtree[k]).resize(15,15,1200.0);
+   GetFirmament(*vtree[k]).configure("Firmament.txt");
  }
 
  SetValue(*vtree[0],TreeQinMax,GetFirmament(*t_t).diffuseBallSensor());    //target tree is the first
@@ -1038,9 +1035,8 @@ template<class TREE, class TS,class BUD>
 
   if(one_time) {
    ResultsToFile rtf(resultfile);
-    rtf.setQmax(GetFirmament(*t).diffuseBallSensor());
-
-     ForEach(*t, rtf);
+   rtf.setQmax(GetFirmament(*t).diffuseBallSensor());
+   ForEach(*t, rtf);
   }
   else {
     //int bs;                 // box STAR  0 = constant value,
@@ -1107,7 +1103,11 @@ template<class TREE, class TS,class BUD>
   MoveTree<TS,BUD> move(Point(10.0,10.0,0.0)-GetPoint(*t),*t);
   ForEach(*t, move);
 
+
   //3) Radiation Calclulation
+
+  //Configure first incomin radiation (Firmament) = no incl, no azim, radiation on horizontal plane
+  GetFirmament(*vtree[0]).configure("Firmament.txt");
 
   if(rad_method == 2) {
     K = ParametricCurve("K.fun");
@@ -1149,7 +1149,9 @@ template<class TREE, class TS,class BUD>
   // 4) Output
 
   if(one_time) {
-    ForEach(*t, ResultsToFile(resultfile));
+    ResultsToFile rtf(resultfile);
+    rtf.setQmax(GetFirmament(*t).diffuseBallSensor());
+    ForEach(*t, rtf);
   }
   else {
     //int bs;                 // box STAR  0 = constant value,

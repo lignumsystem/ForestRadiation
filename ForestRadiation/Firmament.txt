@@ -2,7 +2,7 @@
 15   #incl
 9   #azim
 1200  #Radiation MJ
-#Gap data follows
+#Gap data (shading 0 = no, 1 = full) in 9 inclinations + zenith
 0  0.0
 1  0.0
 2  0.0
