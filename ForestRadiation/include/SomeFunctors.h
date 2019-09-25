@@ -561,7 +561,6 @@ class RandomizeSegmentsInBox{
 	}
       }
     }
-
   }
 
 
@@ -586,7 +585,7 @@ class RandomizeSegmentsInBox{
 
   bool inGap(const Point p, const ForestGap gp) const {
     return sqrt(pow(p.getX() - (gp.first).first, 2.0) + pow(p.getY() - (gp.first).second, 2.0))
-      > gp.second;
+      < gp.second;
   }
 
   bool inBigBox(const Point& p, const Point& ll, const Point& ur) const {
@@ -596,7 +595,7 @@ class RandomizeSegmentsInBox{
     if(p.getY() < ll.getY()) return result;
     if(p.getY() > ur.getY()) return result;
     if(p.getZ() < ll.getZ()) return result;
-    if(p.getX() > ur.getZ()) return result;
+    if(p.getZ() > ur.getZ()) return result;
 
     result = true;
     return result;
@@ -606,38 +605,43 @@ class RandomizeSegmentsInBox{
     operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
     {
       if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
-	//first the small box
-	double ran = ran3(&ran3_seed);
-	int s_box = box_no(limits, ran);
-	vector<int> sb_ind(3);
-	box_ind(s_box, Ny, Nz, sb_ind);
-
 	//postion in the small box
 	double l = GetValue(*ts, LGAL);
+
 	bool out_of_space = true;
 	bool in_gap = true;
-	Point sb_ll(ll.getX()+static_cast<double>(sb_ind[0])*small_box_size[0],
-		    ll.getY()+static_cast<double>(sb_ind[1])*small_box_size[1],
-		    ll.getZ()+static_cast<double>(sb_ind[2])*small_box_size[2]);
 	int no_loop = 0;
 	Point p;
-	while((in_gap || out_of_space) && (no_loop < 10)) {
-	  LGMdouble x = sb_ll.getX() + ran3(&ran3_seed)*small_box_size[0];
-	  LGMdouble y = sb_ll.getY() + ran3(&ran3_seed)*small_box_size[1];
-	  LGMdouble z = sb_ll.getZ() + ran3(&ran3_seed)*small_box_size[2];
+	while((in_gap || out_of_space) && (no_loop < 30)) {
 
-	  p = Point(x,y,z);
-	  if(!inGap(p, gap)) {
+	    //first the small box
+	    double ran = ran3(&ran3_seed);
+	    int s_box = box_no(limits, ran);
+	    vector<int> sb_ind(3);
+	    box_ind(s_box, Ny, Nz, sb_ind);
+
+
+	    Point sb_ll(ll.getX()+static_cast<double>(sb_ind[0])*small_box_size[0],
+		    ll.getY()+static_cast<double>(sb_ind[1])*small_box_size[1],
+		    ll.getZ()+static_cast<double>(sb_ind[2])*small_box_size[2]);
+
+	    LGMdouble x = sb_ll.getX() + ran3(&ran3_seed)*small_box_size[0];
+	    LGMdouble y = sb_ll.getY() + ran3(&ran3_seed)*small_box_size[1];
+	    LGMdouble z = sb_ll.getZ() + ran3(&ran3_seed)*small_box_size[2];
+	  
+	    p = Point(x,y,z);
+
+	    if(!inGap(p, gap)) {
 	    in_gap = false;
-	  }
+	    }
 	  
-	  if ( (inBigBox(p - (Point)(0.5*l*GetDirection(*tc)), ll, ur)) &&
+	    if ( (inBigBox(p - (Point)(0.5*l*GetDirection(*tc)), ll, ur)) &&
 	       (inBigBox(p + (Point)(0.5*l*GetDirection(*tc)), ll, ur)) ) {
-	    out_of_space = false;
-	  }
-	  
-	  no_loop++;                //this prevents infinite loop
+		out_of_space = false;
+	    }
+	    no_loop++;                //this prevents infinite loop
 	}
+
 	SetPoint(*ts, p - (Point)(0.5*l*GetDirection(*tc)));
       }
       return tc;
@@ -652,8 +656,29 @@ class RandomizeSegmentsInBox{
   TMatrix3D<double> density;
   vector<double> limits;
   vector<double> small_box_size;   //x, y, and z side lengths of small boxes
-
 };
+
+
+class PrintPositions{
+public:
+    PrintPositions (ofstream& posfile, const int seedi): pfile(posfile), sd(seedi) {}
+    TreeCompartment<ScotsPineSegment,ScotsPineBud>* operator()
+	(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
+    {
+	if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
+	    if(GetValue(*ts, LGAWf) > 0.0) {
+	    Point p = GetMidPoint(*ts);
+	    pfile << sd << " " << p.getX() << " " << p.getY() << " " << p.getZ() << endl;
+	    }
+	}
+	return tc;
+    }
+
+private:
+    ofstream& pfile;
+    int sd;
+};
+
 
 #endif
  
