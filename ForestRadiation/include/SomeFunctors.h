@@ -605,7 +605,7 @@ class RandomizeSegmentsInBox{
     operator()(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
     {
       if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
-	//postion in the small box
+	//position in the small box
 	double l = GetValue(*ts, LGAL);
 
 	bool out_of_space = true;
@@ -614,35 +614,38 @@ class RandomizeSegmentsInBox{
 	Point p;
 	while((in_gap || out_of_space) && (no_loop < 30)) {
 
-	    //first the small box
-	    double ran = ran3(&ran3_seed);
-	    int s_box = box_no(limits, ran);
-	    vector<int> sb_ind(3);
-	    box_ind(s_box, Ny, Nz, sb_ind);
+	  //first the small box
+	  double ran = ran3(&ran3_seed);
+	  int s_box = box_no(limits, ran);
+	  vector<int> sb_ind(3);
+	  box_ind(s_box, Ny, Nz, sb_ind);
 
 
-	    Point sb_ll(ll.getX()+static_cast<double>(sb_ind[0])*small_box_size[0],
-		    ll.getY()+static_cast<double>(sb_ind[1])*small_box_size[1],
-		    ll.getZ()+static_cast<double>(sb_ind[2])*small_box_size[2]);
-
+	  Point sb_ll(ll.getX()+static_cast<double>(sb_ind[0])*small_box_size[0],
+		      ll.getY()+static_cast<double>(sb_ind[1])*small_box_size[1],
+		      ll.getZ()+static_cast<double>(sb_ind[2])*small_box_size[2]);
+	  int no_loop = 0;
+	  Point p;
+	  while((in_gap || out_of_space) && (no_loop < 20)) {
 	    LGMdouble x = sb_ll.getX() + ran3(&ran3_seed)*small_box_size[0];
 	    LGMdouble y = sb_ll.getY() + ran3(&ran3_seed)*small_box_size[1];
 	    LGMdouble z = sb_ll.getZ() + ran3(&ran3_seed)*small_box_size[2];
-	  
+
 	    p = Point(x,y,z);
 
 	    if(!inGap(p, gap)) {
-	    in_gap = false;
+	      in_gap = false;
 	    }
 	  
 	    if ( (inBigBox(p - (Point)(0.5*l*GetDirection(*tc)), ll, ur)) &&
-	       (inBigBox(p + (Point)(0.5*l*GetDirection(*tc)), ll, ur)) ) {
-		out_of_space = false;
+		 (inBigBox(p + (Point)(0.5*l*GetDirection(*tc)), ll, ur)) ) {
+	      out_of_space = false;
 	    }
 	    no_loop++;                //this prevents infinite loop
-	}
+	  }
 
-	SetPoint(*ts, p - (Point)(0.5*l*GetDirection(*tc)));
+	  SetPoint(*ts, p - (Point)(0.5*l*GetDirection(*tc)));
+	}
       }
       return tc;
     }
@@ -659,25 +662,25 @@ class RandomizeSegmentsInBox{
 };
 
 
-class PrintPositions{
-public:
+  class PrintPositions{
+  public:
     PrintPositions (ofstream& posfile, const int seedi): pfile(posfile), sd(seedi) {}
     TreeCompartment<ScotsPineSegment,ScotsPineBud>* operator()
-	(TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
-    {
+      (TreeCompartment<ScotsPineSegment,ScotsPineBud>* tc) const
+      {
 	if (ScotsPineSegment* ts = dynamic_cast<ScotsPineSegment*>(tc)){
-	    if(GetValue(*ts, LGAWf) > 0.0) {
+	  if(GetValue(*ts, LGAWf) > 0.0) {
 	    Point p = GetMidPoint(*ts);
 	    pfile << sd << " " << p.getX() << " " << p.getY() << " " << p.getZ() << endl;
-	    }
+	  }
 	}
 	return tc;
-    }
+      }
 
-private:
+  private:
     ofstream& pfile;
     int sd;
-};
+  };
 
 
 #endif
