@@ -71,27 +71,41 @@ TreeCompartment<TS,BUD>* ShadingEffectOfCfTreeSegment_1<TS,BUD>::operator()(Tree
             //If foliage, wood radius = 0
             if(fol_dens == 0.0) {
                 LGMdouble rw = GetValue(*ts, LGAR);
-                LGMdouble rf = rw;
+		//                LGMdouble rf = rw;
+		//old one
+/*                 result = CylinderBeamShading(r_0, */
+/*                                              radiation_direction, */
+/*                                              GetPoint(*ts), */
+/*                                              GetDirection(*ts), */
+/*                                              rf, */
+/*                                              rw, */
+/*                                              GetValue(*ts, LGAL), */
+/*                                              distance); */
                 result = CylinderBeamShading(r_0,
                                              radiation_direction,
                                              GetPoint(*ts),
                                              GetDirection(*ts),
-                                             rf,
                                              rw,
-                                             GetValue(*ts, LGAL),
-                                             distance);
+                                             GetValue(*ts, LGAL));
 
             }
             else {
-                LGMdouble rw = 0.0;
+		//Old one:
+/*                 result = CylinderBeamShading(r_0, */
+/*                                              radiation_direction, */
+/*                                              GetPoint(*ts), */
+/*                                              GetDirection(*ts), */
+/*                                              GetValue(*ts, LGARf), */
+/*                                              rw, */
+/*                                              GetValue(*ts, LGAL), */
+/*                                              distance); */
                 result = CylinderBeamShading(r_0,
                                              radiation_direction,
                                              GetPoint(*ts),
                                              GetDirection(*ts),
                                              GetValue(*ts, LGARf),
-                                             rw,
-                                             GetValue(*ts, LGAL),
-                                             distance);
+                                             GetValue(*ts, LGAL), distance);
+
             }
 
             if (result == HIT_THE_WOOD){
@@ -438,24 +452,39 @@ template <class TS,class BUD>
       //If foliage, wood radius = 0
       if(fol_dens == 0.0) {
 	LGMdouble rw = GetValue(*ts, LGAR);
-	LGMdouble rf = rw;
+	//old version
+/* 	LGMdouble rf = rw; */
+/* 	result = CylinderBeamShading(r_0, */
+/* 				     radiation_direction, */
+/* 				     GetPoint(*ts), */
+/* 				     GetDirection(*ts), */
+/* 				     rf, */
+/* 				     rw, */
+/* 				     GetValue(*ts, LGAL), */
+/* 				     distance) */
 	result = CylinderBeamShading(r_0,
 				     radiation_direction,
 				     GetPoint(*ts),
 				     GetDirection(*ts),
-				     rf,
 				     rw,
-				     GetValue(*ts, LGAL),
-				     distance);
+				     GetValue(*ts, LGAL));
       }
       else {
-	LGMdouble rw = 0.0;
+	//old version
+/* 	LGMdouble rw = 0.0; */
+/* 	result = CylinderBeamShading(r_0, */
+/* 				     radiation_direction, */
+/* 				     GetPoint(*ts), */
+/* 				     GetDirection(*ts), */
+/* 				     GetValue(*ts, LGARf), */
+/* 				     rw, */
+/* 				     GetValue(*ts, LGAL), */
+/* 				     distance); */
 	result = CylinderBeamShading(r_0,
 				     radiation_direction,
 				     GetPoint(*ts),
 				     GetDirection(*ts),
 				     GetValue(*ts, LGARf),
-				     rw,
 				     GetValue(*ts, LGAL),
 				     distance);
       }

@@ -1,3 +1,10 @@
+//20.12.2020 I changed the calls to comply with the current version of
+//CylinderBeamShading
+//As the result
+//sm_main_program::evaluate(int& ran3_seed) and 
+//sm_main_program::evaluateWithRw(int& ran3_seed)
+//produce the same result.
+
 #ifndef STAR_MEAN_H
 #define STAR_MEAN_H
 #include <iostream>
@@ -17,11 +24,17 @@ using namespace cxxadt;
 #define NO_HIT 0
 #define HIT_THE_WOOD -1
 
-
+//Old version
+/* int CylinderBeamShading(const Point& r0, const PositionVector& b,  */
+/*                         const Point& rs, const PositionVector& a, */
+/*                         double Rs, double Rw, double L,  */
+/*                         double& distance ); */
 int CylinderBeamShading(const Point& r0, const PositionVector& b, 
                         const Point& rs, const PositionVector& a,
-                        double Rs, double Rw, double L, 
-                        double& distance );
+                        double Rs, double L, double& distance );
+int CylinderBeamShading(const Point& r0, const PositionVector& b, 
+                        const Point& rs, const PositionVector& a,
+                        double Rs, double L);
 
 extern int ran3_seed;
 
@@ -120,10 +133,9 @@ void sm_main_program::evaluate(int& ran3_seed)
   double y = (2.0*Rs) * ran3(&ran3_seed);
   Point r0(x,y,0.0);
   PositionVector up(0.0,0.0,1.0);
-  double Rw = 0.0;
   double distance = 0.0;
   int res = CylinderBeamShading(r0, up, seg_base, seg_dir,
-				Rs, Rw, L, distance );
+				Rs, L, distance);
 
   if(res > 0){
        hit++;
@@ -147,7 +159,7 @@ void sm_main_program::evaluateWithRw(int& ran3_seed)
   PositionVector up(0.0,0.0,1.0);
   double distance = 0.0;
   int res = CylinderBeamShading(r0, up, seg_base, seg_dir,
-				Rs, Rw, L, distance );
+				Rs, L, distance);
 
   if(res > 0){
     hit++;
@@ -187,10 +199,9 @@ void sm_main_program::randomevaluate()
   double y = 2.0*(L + Rs) * ran3(&ran3_seed);
   Point r0(x,y,0.0);
   PositionVector up(0.0,0.0,1.0);
-  double Rw = 0.0;
   double distance = 0.0;
   int res = CylinderBeamShading(r0, up, seg_base, seg_dir,
-				Rs, Rw, L, distance );
+				Rs, L, distance);
 
   if(res > 0){
        hit++;
