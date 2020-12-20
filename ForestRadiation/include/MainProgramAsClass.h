@@ -128,6 +128,9 @@ template <class TREE, class TS, class BUD>
                                    //periodical boundary
     bool randomize_in_box;         //set the segments of tree randomly in a given box
                                    //orientation of segments is not changed
+    int input_seed;
+    bool shoot_print;
+    bool RB_print;
 };
 
 
